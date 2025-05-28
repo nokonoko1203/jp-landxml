@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LandXML version="1.2" xmlns="http://www.landxml.org/schema/LandXML-1.2">
+    <Units>
+        <Metric areaUnit="squareMeter" linearUnit="meter" volumeUnit="cubicMeter"/>
+    </Units>
+    
+    <CoordinateSystem name="JGD2011 / Japan Plane Rectangular CS IX" 
+                      epsgCode="6677" 
+                      proj4String="+proj=tmerc +lat_0=36 +lon_0=139.8333333333333 +k=0.9999 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs"/>
+    
+    <Surface name="ExistingGround" desc="既存地盤">
+        <Definition surfType="TIN">
+            <Pnts>
+                <P id="1">0.0 0.0 100.0</P>
+                <P id="2">100.0 0.0 101.0</P>
+                <P id="3">200.0 0.0 99.5</P>
+                <P id="4">0.0 100.0 102.0</P>
+                <P id="5">100.0 100.0 103.5</P>
+                <P id="6">200.0 100.0 101.2</P>
+                <P id="7">50.0 50.0 101.8</P>
+                <P id="8">150.0 50.0 100.9</P>
+            </Pnts>
+            <Faces>
+                <F>1 2 7</F>
+                <F>2 8 7</F>
+                <F>2 3 8</F>
+                <F>1 7 4</F>
+                <F>7 5 4</F>
+                <F>7 8 5</F>
+                <F>8 6 5</F>
+                <F>8 3 6</F>
+            </Faces>
+        </Definition>
+    </Surface>
+    
+    <Alignment name="CenterLine" desc="中心線形">
+        <CoordGeom>
+            <Line>
+                <Start pnt="0.0 50.0"/>
+                <End pnt="50.0 50.0"/>
+                <Dir>90.0</Dir>
+                <Length>50.0</Length>
+            </Line>
+            <Curve rot="cw" chord="78.54" crvType="arc" delta="90.0" dirEnd="180.0" dirStart="90.0" external="7.61" length="78.54" midOrd="7.61" radius="50.0">
+                <Start pnt="50.0 50.0"/>
+                <Center pnt="50.0 100.0"/>
+                <End pnt="0.0 100.0"/>
+            </Curve>
+            <Line>
+                <Start pnt="0.0 100.0"/>
+                <End pnt="0.0 200.0"/>
+                <Dir>180.0</Dir>
+                <Length>100.0</Length>
+            </Line>
+        </CoordGeom>
+        
+        <Profile name="CenterLine_Profile" desc="縦断線形">
+            <ProfAlign name="Design">
+                <PVI>100.0 101.0</PVI>
+                <PVI>150.0 102.0</PVI>
+                <PVI>200.0 103.0</PVI>
+            </ProfAlign>
+        </Profile>
+        
+        <CrossSects>
+            <CrossSect sta="0.0">
+                <CrossSectPnt>-10.0 100.5</CrossSectPnt>
+                <CrossSectPnt>0.0 101.0</CrossSectPnt>
+                <CrossSectPnt>10.0 100.5</CrossSectPnt>
+            </CrossSect>
+            <CrossSect sta="50.0">
+                <CrossSectPnt>-10.0 101.0</CrossSectPnt>
+                <CrossSectPnt>0.0 101.5</CrossSectPnt>
+                <CrossSectPnt>10.0 101.0</CrossSectPnt>
+            </CrossSect>
+        </CrossSects>
+    </Alignment>
+    
+    <!-- J-LandXML拡張要素 -->
+    <Feature code="DISTANCE_MARK">
+        <Property label="station" value="0+000"/>
+        <Property label="side" value="center"/>
+        <Property label="elevation" value="101.0"/>
+        <CoordGeom>
+            <IrregularLine>
+                <Start pnt="0.0 50.0 101.0"/>
+            </IrregularLine>
+        </CoordGeom>
+    </Feature>
+    
+    <Feature code="WIDTH_STAKE">
+        <Property label="station" value="0+050"/>
+        <Property label="side" value="left"/>
+        <Property label="offset" value="-10.0"/>
+        <Property label="elevation" value="101.0"/>
+        <CoordGeom>
+            <IrregularLine>
+                <Start pnt="-10.0 50.0 101.0"/>
+            </IrregularLine>
+        </CoordGeom>
+    </Feature>
+</LandXML>
