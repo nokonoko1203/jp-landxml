@@ -52,9 +52,9 @@ fn create_sample_landxml() -> LandXML {
         surface_type: SurfaceType::ExistingGround,
         definition: SurfaceDefinition {
             points: vec![
-                Point3D { x: 0.0, y: 0.0, z: 100.0, id: Some("1".to_string()) },
-                Point3D { x: 10.0, y: 0.0, z: 101.0, id: Some("2".to_string()) },
-                Point3D { x: 5.0, y: 10.0, z: 102.0, id: Some("3".to_string()) },
+                Point3D { x: 0.0, y: 0.0, z: 100.0, id: Some(1) },
+                Point3D { x: 10.0, y: 0.0, z: 101.0, id: Some(2) },
+                Point3D { x: 5.0, y: 10.0, z: 102.0, id: Some(3) },
             ],
             faces: vec![
                 Face { p1: 0, p2: 1, p3: 2 },

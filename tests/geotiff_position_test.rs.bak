@@ -1,0 +1,178 @@
+use jp_landxml::{DemGrid, GridBounds, GeoTiffWriter};
+use jp_landxml::models::Point3D;
+use tempfile::TempDir;
+use std::process::Command;
+
+/// GeoTIFFの位置精度を検証するテスト
+#[test]
+fn test_geotiff_position_accuracy() {
+    // 明確な座標で小さなグリッドを作成
+    // 範囲: X=1000-1010, Y=2000-2010 (10x10m)
+    // 解像度: 1m
+    let bounds = GridBounds::new(1000.0, 1010.0, 2000.0, 2010.0, 100.0, 110.0);
+    
+    // 11x11グリッド（0-10のインデックス）
+    let mut grid = DemGrid::new(11, 11, 1000.0, 2010.0, 1.0, 1.0, bounds);
+    
+    // 特定のパターンで標高値を設定（デバッグ用）
+    for row in 0..11 {
+        for col in 0..11 {
+            // 左上隅からの距離に基づいて標高を設定
+            let elevation = 100.0 + (row as f32) + (col as f32) * 0.1;
+            grid.set_value(row, col, elevation).unwrap();
+        }
+    }
+    
+    // 座標系を設定（例: JGD2011 平面直角座標系第9系）
+    grid.epsg_code = Some(6677);
+    
+    // GeoTIFFとして出力
+    let temp_dir = TempDir::new().unwrap();
+    let output_path = temp_dir.path().join("position_test.tif");
+    
+    let writer = GeoTiffWriter::new();
+    let result = writer.write_simple(&grid, &output_path);
+    assert!(result.is_ok());
+    
+    // gdalinfoコマンドが利用可能な場合、詳細情報を表示
+    if let Ok(output) = Command::new("gdalinfo")
+        .arg(&output_path)
+        .output()
+    {
+        if output.status.success() {
+            println!("GDAL info output:");
+            println!("{}", String::from_utf8_lossy(&output.stdout));
+        }
+    }
+    
+    // 座標変換の検証
+    println!("\n=== Coordinate Verification ===");
+    
+    // グリッドの四隅の座標を検証
+    println!("Grid corners (pixel centers):");
+    
+    // 左上ピクセルの中心
+    let (x, y) = grid.grid_to_world(0, 0).unwrap();
+    println!("  Top-left (0,0): ({:.1}, {:.1}) - Expected: (1000.5, 2009.5)", x, y);
+    assert!((x - 1000.5).abs() < 0.001);
+    assert!((y - 2009.5).abs() < 0.001);
+    
+    // 右上ピクセルの中心
+    let (x, y) = grid.grid_to_world(0, 10).unwrap();
+    println!("  Top-right (0,10): ({:.1}, {:.1}) - Expected: (1009.5, 2009.5)", x, y);
+    assert!((x - 1009.5).abs() < 0.001);
+    assert!((y - 2009.5).abs() < 0.001);
+    
+    // 左下ピクセルの中心
+    let (x, y) = grid.grid_to_world(10, 0).unwrap();
+    println!("  Bottom-left (10,0): ({:.1}, {:.1}) - Expected: (1000.5, 2000.5)", x, y);
+    assert!((x - 1000.5).abs() < 0.001);
+    assert!((y - 2000.5).abs() < 0.001);
+    
+    // 右下ピクセルの中心
+    let (x, y) = grid.grid_to_world(10, 10).unwrap();
+    println!("  Bottom-right (10,10): ({:.1}, {:.1}) - Expected: (1009.5, 2000.5)", x, y);
+    assert!((x - 1009.5).abs() < 0.001);
+    assert!((y - 2000.5).abs() < 0.001);
+    
+    // 逆変換の検証
+    println!("\nReverse transformation (world to grid):");
+    
+    // 既知の座標からグリッド位置を計算
+    let test_points = vec![
+        (1000.5, 2009.5, 0, 0),   // 左上ピクセル中心
+        (1005.5, 2005.5, 4, 5),   // 中央付近
+        (1009.5, 2000.5, 10, 10), // 右下ピクセル中心
+    ];
+    
+    for (x, y, expected_row, expected_col) in test_points {
+        if let Some((row, col)) = grid.world_to_grid(x, y) {
+            println!("  ({:.1}, {:.1}) -> ({}, {}) - Expected: ({}, {})", 
+                     x, y, row, col, expected_row, expected_col);
+            assert_eq!(row, expected_row);
+            assert_eq!(col, expected_col);
+        }
+    }
+    
+    // GeoTransformの検証
+    let geo_transform = grid.geo_transform();
+    println!("\nGeoTransform verification:");
+    println!("  Origin (top-left corner): ({:.1}, {:.1})", geo_transform[0], geo_transform[3]);
+    println!("  Pixel size: {:.1} x {:.1}", geo_transform[1], -geo_transform[5]);
+    
+    // GeoTransformは左上ピクセルの左上角を指すべき
+    assert!((geo_transform[0] - 1000.0).abs() < 0.001);
+    assert!((geo_transform[3] - 2010.0).abs() < 0.001);
+    assert!((geo_transform[1] - 1.0).abs() < 0.001);
+    assert!((geo_transform[5] - (-1.0)).abs() < 0.001);
+}
+
+/// 実際のTINデータからGeoTIFFを生成して位置を検証
+#[test]
+fn test_tin_to_geotiff_position() {
+    use jp_landxml::{TriangulationSource, DemGridGenerator};
+    use jp_landxml::models::{Surface, SurfaceDefinition, SurfaceType, Face};
+    
+    // 明確な座標で三角形メッシュを作成
+    // 範囲: X=5000-5100, Y=3000-3100
+    let points = vec![
+        Point3D { x: 5000.0, y: 3000.0, z: 200.0, id: Some(1) },
+        Point3D { x: 5100.0, y: 3000.0, z: 210.0, id: Some(2) },
+        Point3D { x: 5000.0, y: 3100.0, z: 220.0, id: Some(3) },
+        Point3D { x: 5100.0, y: 3100.0, z: 230.0, id: Some(4) },
+        Point3D { x: 5050.0, y: 3050.0, z: 215.0, id: Some(5) }, // 中心点
+    ];
+    
+    let triangles = vec![
+        Face { p1: 0, p2: 1, p3: 4 }, // 下側
+        Face { p1: 1, p2: 3, p3: 4 }, // 右側
+        Face { p1: 3, p2: 2, p3: 4 }, // 上側
+        Face { p1: 2, p2: 0, p3: 4 }, // 左側
+    ];
+    
+    let surface = Surface {
+        name: "TestTIN".to_string(),
+        surface_type: SurfaceType::ExistingGround,
+        definition: SurfaceDefinition {
+            points,
+            faces: triangles,
+        },
+    };
+    
+    // TINからDEMグリッドを生成（10m解像度）
+    let tri_source = TriangulationSource::from_surface(&surface).unwrap();
+    let mut dem_grid = tri_source.generate_grid(10.0, None).unwrap();
+    dem_grid.epsg_code = Some(6677);
+    
+    println!("\n=== TIN to GeoTIFF Position Test ===");
+    println!("TIN bounds: X={:.1}-{:.1}, Y={:.1}-{:.1}", 
+             tri_source.bounds().min_x, tri_source.bounds().max_x,
+             tri_source.bounds().min_y, tri_source.bounds().max_y);
+    println!("Grid size: {}x{}", dem_grid.rows, dem_grid.cols);
+    println!("Grid origin: ({:.1}, {:.1})", dem_grid.origin_x, dem_grid.origin_y);
+    
+    // 特定の座標での標高値を検証
+    let test_coords = vec![
+        (5050.0, 3050.0), // 中心点（既知の標高: 215.0）
+        (5025.0, 3025.0), // 左下寄り
+        (5075.0, 3075.0), // 右上寄り
+    ];
+    
+    for (x, y) in test_coords {
+        if let Some((row, col)) = dem_grid.world_to_grid(x, y) {
+            if let Some(elevation) = dem_grid.get_value(row, col) {
+                println!("  Coordinate ({:.1}, {:.1}) -> Grid[{},{}] = {:.1}m", 
+                         x, y, row, col, elevation);
+            }
+        }
+    }
+    
+    // GeoTIFFとして出力
+    let temp_dir = TempDir::new().unwrap();
+    let output_path = temp_dir.path().join("tin_position_test.tif");
+    
+    let writer = GeoTiffWriter::new();
+    writer.write_simple(&dem_grid, &output_path).unwrap();
+    
+    println!("GeoTIFF saved to: {:?}", output_path);
+}

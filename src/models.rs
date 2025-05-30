@@ -37,12 +37,12 @@ pub struct SurfaceDefinition {
     pub faces: Vec<Face>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Point3D {
     pub x: f64,
     pub y: f64,
-    pub z: f64,
-    pub id: Option<String>,
+    pub z: f32,
+    pub id: Option<u32>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -50,6 +50,15 @@ pub struct Face {
     pub p1: usize,
     pub p2: usize,
     pub p3: usize,
+}
+
+// DEM処理用のTriangle型エイリアス
+pub type Triangle = Face;
+
+impl Triangle {
+    pub fn vertex1(&self) -> usize { self.p1 }
+    pub fn vertex2(&self) -> usize { self.p2 }
+    pub fn vertex3(&self) -> usize { self.p3 }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

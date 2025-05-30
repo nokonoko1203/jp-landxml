@@ -6,7 +6,7 @@ use std::io::Write;
 fn test_parse_basic_landxml() {
     let xml_content = r#"<?xml version="1.0" encoding="UTF-8"?>
 <LandXML version="1.2" xmlns="http://www.landxml.org/schema/LandXML-1.2">
-    <Surface name="ExistingGround">
+    <Surface name="TestSurface" desc="ExistingGround">
         <Definition surfType="TIN">
             <Pnts>
                 <P id="1">0.0 0.0 100.0</P>
@@ -30,8 +30,8 @@ fn test_parse_basic_landxml() {
     assert_eq!(landxml.surfaces.len(), 1);
     
     let surface = &landxml.surfaces[0];
-    assert_eq!(surface.name, "Sample Surface"); // 簡易実装のため固定値
-    assert!(matches!(surface.surface_type, SurfaceType::ExistingGround));
+    assert_eq!(surface.name, "TestSurface"); // XMLのname属性から取得
+    assert!(matches!(surface.surface_type, SurfaceType::ExistingGround)); // desc="ExistingGround"
 }
 
 #[test]
@@ -85,5 +85,5 @@ fn test_parse_j_landxml_features() {
     assert_eq!(landxml.features.len(), 1);
     
     let feature = &landxml.features[0];
-    assert_eq!(feature.code, "SAMPLE"); // 簡易実装のため固定値
+    assert_eq!(feature.code, "DISTANCE_MARK"); // XMLのcode属性から取得
 }

@@ -1,317 +1,329 @@
 # LandXML/J-LandXML パース用 Rust ライブラリ設計計画書
 
-## プロジェクト概要
+## 🚧 現在の実装状況（2025年5月30日時点）
 
-本プロジェクトは、日本の土木分野で標準的に使用されているLandXML（特にJ-LandXML Ver.1.6）を効率的にパースするRustライブラリの開発を目的とします。
+### ✅ 実装完了
+- **基本XMLパース基盤**: quick-xmlによる効率的なXMLパース
+- **Surfaceデータ処理**: TINモデル（点群・三角形面）の完全パース・処理
+- **座標系処理**: CoordinateSystemの基本パース（標準LandXMLのみ、J-LandXML拡張未対応）
+- **データ構造定義**: 主要な構造体（LandXML、Surface、Alignment等）
+- **幾何計算**: クロソイド曲線計算、面積計算
+- **JSON出力**: パースしたデータの構造化JSON出力
+- **エラーハンドリング**: 包括的なエラー処理体系
+- **テスト環境**: 基本テスト・大容量ファイルテスト（69MB実データ対応）
+- **性能**: ストリーミング処理による大容量ファイル対応
 
-### 背景
-- LandXMLは土木分野の設計・測量データ交換のオープンXML形式
-- J-LandXMLは日本の国土交通省が策定した拡張仕様（Ver.1.6が最新）
-- 測量→設計→施工→維持管理の全工程でデータ連携の中核を担う
-- 国交省直轄事業でのJ-LandXML提出が義務化
+### ⚠️ 部分実装
+- **Alignment要素**: 基本構造定義済み、詳細パース未実装
+- **Feature要素**: 基本構造定義済み、Property動的プロパティ未実装
+- **CrossSections**: データ構造定義済み、詳細パース未実装
 
-## 要件定義
+### ❌ 未実装（優先度高）
+- **J-LandXML座標系拡張仕様**: horizontalCoordinateSystemName対応、平面直角座標系1系～19系
+- **J-LandXML Ver.1.6拡張機能**: WidthStakePnts、非表示属性、開放/閉合区分
+- **XSDスキーマ検証**: スキーマファイルによる厳密な検証
+- **Property要素処理**: Feature内の動的プロパティ管理
+- **Profile・Superelevation**: 縦断線形・横断勾配処理
+- **エンコーディング対応**: Shift_JIS等多言語対応
+- **CLI機能**: コマンドラインツール
 
-### 1. 機能要件
+**進捗率**: 約30%（基盤部分は堅牢、拡張機能実装が必要）
 
-#### 1.1 基本パース機能
-- [x] LandXML 1.2 標準仕様の読み取り
-- [x] J-LandXML Ver.1.6 拡張仕様の対応
-- [x] XMLスキーマ検証
-- [x] エラーハンドリング（不正なXML、仕様違反）
+## 🎯 最新タスク：J-LandXML座標系拡張仕様対応（2025年5月30日追加）
 
-#### 1.2 主要データ要素の対応
-- [x] **Surface要素**：TINモデル、地形サーフェス（ExistingGround等）
-- [x] **Alignments要素**：道路平面線形、クロソイド曲線
-- [x] **Profile要素**：縦断線形、勾配情報
-- [x] **CrossSections要素**：横断面、路肩幅、片勾配
-- [x] **Feature要素**：J-LandXML拡張項目（累加距離標、幅杭座標等）
-- [x] **CoordinateSystem要素**：座標系情報
+### 背景・要件
+- `Coordinatesystem`の`horizontalCoordinateSystemName="1(X,Y)"`属性で平面直角座標系1系を指定
+- J-LandXML拡張仕様として標準LandXMLと分離した実装が必要
+- 日本の平面直角座標系1系～19系の完全対応
 
-#### 1.3 J-LandXML固有機能
-- [x] 日本固有の線形要素（クロソイドパラメータ）
-- [x] 特殊な片勾配すりつけパターン
-- [x] 累加距離標（測点）情報
-- [x] 幅杭座標（Ver.1.6で追加）
-- [x] Feature要素による拡張属性
+### 実装計画
 
-#### 1.4 出力機能
-- [x] パースしたデータの構造化表現
-- [x] JSON形式でのエクスポート
-- [x] デバッグ用の情報出力
+#### **フェーズ1**: 基盤構築 🏗️
+- [ ] `src/jlandxml/` モジュール作成
+- [ ] 平面直角座標系定義（1系～19系、EPSGコード対応）
+- [ ] J-LandXML用拡張CoordinateSystemモデル定義
+- [ ] 座標系名パース機能（正規表現による`"N(X,Y)"`形式解析）
 
-### 2. 非機能要件
+#### **フェーズ2**: パーサー拡張 ⚙️
+- [ ] `horizontalCoordinateSystemName`属性パース機能
+- [ ] J-LandXML専用パーサー実装（標準LandXMLパーサーを継承）
+- [ ] 座標系名 → 平面直角座標系マッピング機能
+- [ ] エラーハンドリング（不正な座標系名、対応外の系番号）
 
-#### 2.1 性能要件
-- 大容量ファイル（数百MB）の効率的処理
-- メモリ使用量の最適化
-- ストリーミング処理対応
+#### **フェーズ3**: 統合・テスト 🧪
+- [ ] 既存APIとの統合（後方互換性保持）
+- [ ] J-LandXMLサンプルファイル作成・テスト
+- [ ] 座標変換機能（オプション）：平面直角座標系間、地理座標系との変換
+- [ ] ドキュメント更新・使用例追加
 
-#### 2.2 保守性要件
-- モジュラー設計による拡張性
-- 包括的なテストカバレッジ
-- 詳細なドキュメント
+### 技術仕様
 
-#### 2.3 互換性要件
-- LandXML 1.2 完全対応
-- J-LandXML Ver.1.5/1.6 対応
-- 将来バージョンへの拡張性
-
-## アーキテクチャ設計
-
-### 1. モジュール構成
-
+#### 新モジュール構造
 ```
-jp-landxml/
-├── src/
-│   ├── lib.rs              # ライブラリエントリポイント
-│   ├── parser/             # XMLパース機能
-│   │   ├── mod.rs
-│   │   ├── landxml.rs      # LandXML基本パーサー
-│   │   ├── j_landxml.rs    # J-LandXML拡張パーサー
-│   │   └── validation.rs   # スキーマ検証
-│   ├── models/             # データ構造定義
-│   │   ├── mod.rs
-│   │   ├── core.rs         # 基本構造体
-│   │   ├── surface.rs      # Surface関連
-│   │   ├── alignment.rs    # Alignment関連
-│   │   ├── profile.rs      # Profile関連
-│   │   ├── cross_section.rs # CrossSection関連
-│   │   └── feature.rs      # Feature拡張
-│   ├── geometry/           # 幾何計算
-│   │   ├── mod.rs
-│   │   ├── coordinate.rs   # 座標変換
-│   │   ├── clothoid.rs     # クロソイド曲線
-│   │   └── tin.rs          # TIN処理
-│   ├── export/             # 出力機能
-│   │   ├── mod.rs
-│   │   ├── json.rs         # JSON出力
-│   │   └── debug.rs        # デバッグ出力
-│   ├── error.rs            # エラー定義
-│   └── utils.rs            # ユーティリティ
-├── tests/                  # テストファイル
-├── examples/               # 使用例
-├── docs/                   # ドキュメント
-└── schemas/                # XMLスキーマ定義
+src/
+├── jlandxml/                    # 新規作成
+│   ├── mod.rs                   # モジュールエントリーポイント
+│   ├── models.rs                # J-LandXML拡張モデル
+│   ├── parser.rs                # J-LandXML専用パーサー
+│   └── coordinate_systems.rs    # 平面直角座標系定義・変換
 ```
 
-### 2. 主要データ構造
-
+#### 平面直角座標系対応
 ```rust
-// 基本構造
-pub struct LandXML {
-    pub version: String,
-    pub coordinate_system: Option<CoordinateSystem>,
-    pub surfaces: Vec<Surface>,
-    pub alignments: Vec<Alignment>,
-    pub features: Vec<Feature>, // J-LandXML拡張
+pub enum JapanPlaneCoordinateSystem {
+    Zone1,   // EPSG:6669 - 長崎、鹿児島県の一部
+    Zone2,   // EPSG:6670 - 福岡、佐賀、熊本、大分、宮崎県
+    // ... Zone19まで（EPSG:6687）
 }
 
-// 地形サーフェス
-pub struct Surface {
-    pub name: String,
-    pub surface_type: SurfaceType, // ExistingGround, DesignGround, etc.
-    pub definition: SurfaceDefinition,
-}
-
-// 線形
-pub struct Alignment {
-    pub name: String,
-    pub coord_geom: CoordGeom,
-    pub profile: Option<Profile>,
-    pub cross_sections: Vec<CrossSection>,
-}
-
-// J-LandXML拡張
-pub struct Feature {
-    pub code: String,
-    pub properties: HashMap<String, String>,
-    pub geometry: Option<FeatureGeometry>,
+pub struct JLandXmlCoordinateSystem {
+    pub base: CoordinateSystem,                             // 標準LandXML部分
+    pub horizontal_coordinate_system_name: Option<String>,  // J-LandXML拡張
+    pub plane_coordinate_zone: Option<JapanPlaneCoordinateSystem>,
 }
 ```
 
-## タスク分割・実装計画
+#### パース対象属性
+- `horizontalCoordinateSystemName="1(X,Y)"` → 平面直角座標系1系
+- `horizontalCoordinateSystemName="9(X,Y)"` → 平面直角座標系9系
+- その他の系（2～19系）も同様にサポート
 
-### フェーズ1: 基盤整備（週1-2）
+### 優先度・期限
+- **優先度**: 高（J-LandXML対応の基盤機能）
+- **想定期間**: 1-2週間
+- **依存関係**: 既存の標準LandXMLパーサーに依存、破壊的変更なし
 
-#### タスク1.1: プロジェクト初期設定
-- [x] Cargo.toml依存関係設定
-- [x] 基本モジュール構造作成
-- [x] エラーハンドリング設計
-- [x] テスト環境構築
+## 📍 CoordinateSystem仕様詳細（完全版）
 
-#### タスク1.2: XMLパース基盤
-- [x] XMLパーサーライブラリ選定（quick-xml or roxmltree）
-- [x] 基本XMLパース機能実装
-- [x] スキーマ検証機能実装
+### 1. J-LandXML CoordinateSystem要素の完全仕様
 
-#### タスク1.3: 基本データ構造
-- [x] 基本構造体定義
-- [x] 座標系・測地系対応
-- [x] デバッグ出力機能
+#### 1.1 要素構造と役割
 
-### フェーズ2: 基本要素実装（週3-4）
-
-#### タスク2.1: Surface要素
-- [x] TINモデルパース機能
-- [x] 地形サーフェス処理
-- [x] 三角網データ構造
-
-#### タスク2.2: Alignment要素
-- [x] 平面線形パース
-- [x] 直線・円弧・クロソイド対応
-- [x] 線形計算機能
-
-#### タスク2.3: Profile/CrossSection要素
-- [x] 縦断線形処理
-- [x] 横断面データ処理
-- [x] 勾配・幅員計算
-
-### フェーズ3: J-LandXML拡張対応（週5-6）
-
-#### タスク3.1: Feature要素実装
-- [x] Feature要素パース機能
-- [x] 拡張属性処理
-- [x] 動的プロパティ管理
-
-#### タスク3.2: 日本固有要素
-- [x] クロソイドパラメータ拡張
-- [x] 累加距離標処理
-- [x] 幅杭座標（Ver.1.6）対応
-- [x] 片勾配すりつけパターン
-
-#### タスク3.3: バージョン対応
-- [x] Ver.1.5/1.6差分対応
-- [x] 下位互換性確保
-
-### フェーズ4: 品質向上・最適化（週7-8）
-
-#### タスク4.1: テスト強化
-- [x] 単体テスト整備
-- [x] 統合テスト作成
-- [x] 実データテスト
-
-#### タスク4.2: 性能最適化
-- [x] メモリ使用量最適化
-- [x] 大容量ファイル対応
-- [x] ストリーミング処理
-
-#### タスク4.3: エラーハンドリング
-- [x] 詳細エラーメッセージ
-- [x] 回復可能エラー処理
-- [x] ログ機能
-
-### フェーズ5: 出力・統合機能（週9-10）
-
-#### タスク5.1: 出力機能
-- [x] JSON形式エクスポート
-- [x] CSV形式エクスポート
-- [x] デバッグ情報出力
-
-#### タスク5.2: CLI・サンプル
-- [x] コマンドラインツール
-- [x] 使用例作成
-- [x] サンプルデータ整備
-
-#### タスク5.3: ドキュメント
-- [x] APIドキュメント
-- [x] 使用方法ガイド
-- [x] J-LandXML対応表
-
-## 技術選定
-
-### 依存ライブラリ
-
-```toml
-[dependencies]
-# XMLパース
-quick-xml = "0.30"           # 高速XMLパーサー
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"          # JSON出力用
-
-# 幾何計算
-nalgebra = "0.32"           # 線形代数
-geo = "0.26"                # 地理空間計算
-
-# エラーハンドリング
-thiserror = "1.0"           # エラー定義
-anyhow = "1.0"              # エラー伝播
-
-# 文字列処理
-regex = "1.0"               # 正規表現
-encoding_rs = "0.8"         # 文字エンコーディング
-
-[dev-dependencies]
-tokio-test = "0.4"          # 非同期テスト
-tempfile = "3.0"            # テスト用一時ファイル
+```xml
+<CoordinateSystem
+    name="CRS1"
+    horizontalDatum="JGD2000"
+    verticalDatum="O.P"
+    horizontalCoordinateSystemName="9(X,Y)"
+    desc="第９系">
+  <Feature>
+    <Property label="differTP" value="-1.3000"/>
+  </Feature>
+</CoordinateSystem>
 ```
 
-### 開発環境
-- Rust 1.70+ (edition 2021)
-- cargo-doc (ドキュメント生成)
-- cargo-test (テスト実行)
-- cargo-clippy (静的解析)
+| パス                              | 型 / 書式 | 必須 | 説明                                                                  |
+| --------------------------------- | --------- | ---- | --------------------------------------------------------------------- |
+| `CoordinateSystem`                | ―         | ○    | 空間参照系のまとまりを表すルート要素                                  |
+| `@name`                           | xs:string | ○    | CRS 識別子（自由記述）                                                |
+| `@horizontalDatum`                | xs:string | ○    | **測地原子**（表１の列挙値）                                          |
+| `@verticalDatum`                  | xs:string | ○    | **鉛直原子**（表２の列挙値）                                          |
+| `@horizontalCoordinateSystemName` | xs:string | ○    | **水平座標系の基準名**（表３の列挙値）                                |
+| `@desc`                           | xs:string | △    | 補足的な説明や系番号など自由記述                                      |
+| `Feature`                         | ―         | △    | 属性補足用の子要素（複数可）                                          |
+| `Property@label`                  | xs:string | ○    | `Feature` 内のキー名                                                  |
+| `Property@value`                  | xs:string | ○    | `Feature` 内の値。ここでは **differTP** が T.P との差（単位 m）を保持 |
 
-## 検証・テスト戦略
+> **実装ポイント**
+>
+> * `verticalDatum` が **T.P** 以外の場合は **differTP** プロパティを付与し、T.P との差を必ず明示する。
+> * 単位はメートル、符号は「基準面 – T.P」。例：O.P は T.P より 1.300 m 低いので `-1.3000`。
 
-### 1. テストデータ
-- 国交省サンプルデータ
-- OCF認証用テストデータ
-- 各種ソフトウェア出力データ
-- 異常ケース・境界値データ
+### 2. 属性値の詳細定義
 
-### 2. テスト観点
-- 標準LandXML 1.2互換性
-- J-LandXML Ver.1.5/1.6対応
-- 大容量ファイル処理
-- 文字エンコーディング処理
-- エラー処理
+#### 表１　水平位置の測地原子（`horizontalDatum`）
 
-### 3. 品質指標
-- テストカバレッジ >90%
-- メモリ使用量 <100MB（通常ファイル）
-- パース速度 >1MB/s
+| 値          | 日本語名称     | 備考                               |
+| ----------- | -------------- | ---------------------------------- |
+| **JGD2000** | 日本測地系2000 | 最新の全国測地原子（GRS80 楕円体） |
+| **JGD2011** | 日本測地系2011 | 東日本大震災後の再測量に対応       |
+| **TD**      | 日本測地系     | 旧 Tokyo Datum（Bessel 楕円体）    |
 
-## リスク・課題
+#### 表２　鉛直原子（`verticalDatum`）
 
-### 技術的リスク
-1. **仕様の複雑性**: J-LandXML拡張仕様の完全理解
-2. **性能問題**: 大容量XMLファイルの処理
-3. **互換性**: 各ソフトウェアの出力差異
+| 値        | 対象河川・水域              | T.P との差 (m)    | 備考                                             |
+| --------- | --------------------------- | ----------------- | ------------------------------------------------ |
+| **T.P**   | 東京湾中等潮位              | 0 (基準)          | Tokyo Peil                                       |
+| **K.P**   | 北上川                      | -0.8745           | Kitakami Peil                                    |
+| **S.P**   | 鳴瀬川                      | -0.0873           | Same Peil                                        |
+| **Y.P**   | 利根川                      | -0.8402           | Tone Peil                                        |
+| **A.P**   | 荒川・中川・多摩川 / 吉野川 | -1.1344 / -0.8333 | Arakawa Peil（関東）と同名だが差が異なるため注意 |
+| **O.P**   | **淀川**                    | **-1.3000**       | Osaka Peil                                       |
+| **T.P.W** | 渡川                        | +0.113            | Tosa Peil Watarigawa                             |
+| **B.S.L** | 琵琶湖                      | +84.371           | Biwa Surface Level                               |
 
-### 対応策
-1. 段階的実装とテスト強化
-2. ストリーミング処理とメモリ最適化
-3. 実データテストと検証
+#### 表３　水平座標系の基準名（`horizontalCoordinateSystemName`）
 
-## 成果物
+| 値                | 説明                          | 適用地域（概略）                                                                                  |
+| ----------------- | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| 1(X,Y) 〜 19(X,Y) | 平面直角座標系 第 I ～ XIX 系 | 国土地理院定義の 19 系。<br/>値 = 系番号 + "(X,Y)"。例：**9(X,Y)** = 第 IX 系（関西・近畿中心）。 |
+| 2系               | 6670                          | 福岡、佐賀、熊本、大分、宮崎県                                                                    | 131°00′E | 33°00′N |
+| 3系               | 6671                          | 山口、島根、広島県                                                                                | 132°10′E | 34°20′N |
+| 4系               | 6672                          | 香川、愛媛、徳島、高知県                                                                          | 133°30′E | 33°00′N |
+| 5系               | 6673                          | 兵庫、鳥取、岡山県                                                                                | 134°20′E | 34°40′N |
+| 6系               | 6674                          | 京都、大阪、福井、滋賀、三重、奈良、和歌山県                                                      | 136°00′E | 36°00′N |
+| 7系               | 6675                          | 石川、富山、岐阜、愛知県                                                                          | 137°10′E | 36°00′N |
+| 8系               | 6676                          | 新潟、長野、山梨、静岡県                                                                          | 138°30′E | 36°00′N |
+| 9系               | 6677                          | 東京、福島、栃木、茨城、埼玉、千葉、群馬、神奈川県                                                | 139°50′E | 36°00′N |
+| 10系              | 6678                          | 青森、秋田、山形、岩手、宮城県                                                                    | 140°50′E | 40°00′N |
+| 11系              | 6679                          | 小笠原諸島                                                                                        | 142°15′E | 26°00′N |
+| 12系              | 6680                          | 北海道西部                                                                                        | 142°15′E | 44°00′N |
+| 13系              | 6681                          | 北海道中央部                                                                                      | 144°15′E | 44°00′N |
+| 14系              | 6682                          | 北海道東部                                                                                        | 142°15′E | 44°00′N |
+| 15系              | 6683                          | 沖縄県本島                                                                                        | 127°30′E | 26°00′N |
+| 16系              | 6684                          | 沖縄県西表島                                                                                      | 124°00′E | 26°00′N |
+| 17系              | 6685                          | 沖縄県硫黄鳥島                                                                                    | 131°00′E | 26°00′N |
+| 18系              | 6686                          | 沖縄県小笠原硫黄島                                                                                | 136°00′E | 20°00′N |
+| 19系              | 6687                          | 沖縄県南鳥島                                                                                      | 153°59′E | 26°00′N |
 
-### プライマリ成果物
-- jp-landxml Rustライブラリ
-- コマンドラインツール
-- APIドキュメント
+#### 3. 設計上の留意点
 
-### セカンダリ成果物
-- 使用例・サンプルコード
-- J-LandXML対応表
-- 性能ベンチマーク
+1. **正規化チェック**
+   * `horizontalDatum` と `horizontalCoordinateSystemName` の組合せは論理的に一致させる。例：第 IX 系なら JGD2000 または JGD2011 が一般的。
 
-## 今後の拡張予定
+2. **高さ系変換**
+   * アプリ側で標高を T.P 系に統一する場合は `differTP` を利用して
+     `標高_TP = 観測標高 + differTP` の補正を行う。
 
-### 短期（3ヶ月）
-- WebAssembly対応
-- Python/Node.jsバインディング
-- オンラインビューワ
+3. **互換性**
+   * 旧 Tokyo Datum (TD) ＋ 第 I～XIX 系というレガシー組合せも許容することで既存データ移行を容易にする。
 
-### 中期（6ヶ月）
-- IFC-Infra連携機能
-- 3Dビジュアライゼーション
-- CADソフト連携API
+4. **バリデーション**
+   * 可能であれば XML スキーマ (XSD) 側で列挙型を定義し、上記の表１〜表３に無い値を拒否する。
 
-### 長期（1年）
-- リアルタイムデータ処理
-- クラウド連携機能
-- AI活用データ解析
+5. **国際化**
+   * `@name` や `@desc` は多言語での UI 表示を想定し UTF-8 固定、長さ制限は 255 byte 程度を推奨。
+
+### 4. 具体例：淀川・第 IX 系の場合
+
+```xml
+<CoordinateSystem
+    name="Yodo-CRS"
+    horizontalDatum="JGD2000"
+    verticalDatum="O.P"
+    horizontalCoordinateSystemName="9(X,Y)"
+    desc="淀川・平面直角座標系第IX系">
+  <Feature>
+    <!-- O.P は T.P より 1.3 m 低い -->
+    <Property label="differTP" value="-1.3000"/>
+  </Feature>
+</CoordinateSystem>
+```
+
+* `verticalDatum="O.P"` → **淀川** 高程基準
+* `differTP = -1.3000` → T.P より 1.300 m 低い
+* `horizontalCoordinateSystemName="9(X,Y)"` → 関西一帯で用いる第 IX 系平面直角座標
+
+### 5. Rust実装での構造体定義
+
+#### 5.1 拡張CoordinateSystemモデル
+```rust
+// src/jlandxml/models.rs - 新規実装予定
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct JLandXmlCoordinateSystem {
+    // 基本属性
+    pub name: String,
+    pub desc: Option<String>,
+
+    // 測地・座標系定義
+    pub horizontal_datum: HorizontalDatum,
+    pub vertical_datum: VerticalDatum,
+    pub horizontal_coordinate_system_name: String,
+
+    // 高さ系補正
+    pub differ_tp: Option<f64>,  // T.Pとの差（メートル）
+
+    // 標準LandXML互換性
+    pub epsg_code: Option<String>,
+    pub proj4_string: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum HorizontalDatum {
+    JGD2000,  // 日本測地系2000
+    JGD2011,  // 日本測地系2011
+    TD,       // Tokyo Datum（旧日本測地系）
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum VerticalDatum {
+    TP,       // 東京湾平均海面（基準）
+    KP,       // 北上川基準点
+    SP,       // 鳴瀬川基準点
+    YP,       // 利根川基準点
+    AP,       // 荒川基準点
+    OP,       // 淀川基準点（大阪）
+    TPW,      // 渡川基準点
+    BSL,      // 琵琶湖水準面
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PlaneRectangularSystem {
+    Zone1,  Zone2,  Zone3,  Zone4,  Zone5,
+    Zone6,  Zone7,  Zone8,  Zone9,  Zone10,
+    Zone11, Zone12, Zone13, Zone14, Zone15,
+    Zone16, Zone17, Zone18, Zone19,
+}
+```
+
+#### 5.2 パース処理の実装
+```rust
+impl JLandXmlCoordinateSystem {
+    /// horizontalCoordinateSystemNameから系番号を抽出
+    pub fn parse_zone(coord_name: &str) -> Result<PlaneRectangularSystem, CoordinateSystemError> {
+        let re = regex::Regex::new(r"^(\d{1,2})\(X,Y\)$").unwrap();
+        if let Some(captures) = re.captures(coord_name) {
+            let zone_num: u8 = captures[1].parse()
+                .map_err(|_| CoordinateSystemError::InvalidZoneNumber)?;
+
+            match zone_num {
+                1 => Ok(PlaneRectangularSystem::Zone1),
+                2 => Ok(PlaneRectangularSystem::Zone2),
+                // ... 3-18
+                19 => Ok(PlaneRectangularSystem::Zone19),
+                _ => Err(CoordinateSystemError::InvalidZoneNumber),
+            }
+        } else {
+            Err(CoordinateSystemError::InvalidFormat(coord_name.to_string()))
+        }
+    }
+
+    /// T.P基準への標高変換
+    pub fn to_tp_elevation(&self, raw_elevation: f64) -> f64 {
+        match self.differ_tp {
+            Some(diff) => raw_elevation + diff,
+            None => raw_elevation, // T.P基準またはdifferTP未設定
+        }
+    }
+
+    /// 指定高さ系からT.P基準への変換
+    pub fn get_tp_offset(&self) -> f64 {
+        match self.vertical_datum {
+            VerticalDatum::TP => 0.0,
+            VerticalDatum::KP => -0.8745,
+            VerticalDatum::SP => -0.0873,
+            VerticalDatum::YP => -0.8402,
+            VerticalDatum::AP => -1.1344, // 関東のA.P
+            VerticalDatum::OP => -1.3000,
+            VerticalDatum::TPW => 0.113,
+            VerticalDatum::BSL => 84.371,
+        }
+    }
+}
+```
+
+### 6. 実装チェックリスト ✔️
+
+* [ ] 属性値が列挙表（表１〜表３）に含まれているか
+* [ ] `verticalDatum ≠ "T.P"` の場合に必ず `differTP` を設定したか
+* [ ] 系番号と測地原子の整合性を確認したか
+* [ ] XSD で列挙制約と型チェックを定義したか
+* [ ] ドキュメントに値の意味と補正式を注記したか
+* [ ] 正規表現による`horizontalCoordinateSystemName`の検証を実装したか
+* [ ] T.P基準への標高変換処理を実装したか
+* [ ] 旧測地系（TD）との互換性を考慮したか
+* [ ] エラーハンドリングで適切な例外を定義したか
+* [ ] 単体テストで各列挙値のパースを検証したか
 
 ---
 
