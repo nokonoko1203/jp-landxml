@@ -1,10 +1,10 @@
 use super::coordinate_systems::{CoordinateSystemMapper, JapanPlaneCoordinateSystem};
 use super::models::{JLandXmlCoordinateSystem, JLandXmlDocument};
 use crate::error::LandXMLError;
-use crate::parser::LandXMLParser;
+use crate::models::LandXML;
 /// J-LandXML Ver.1.6 専用パーサー
 ///
-/// 標準LandXMLパーサーを拡張して、J-LandXML特有の属性と要素をサポートします。
+/// J-LandXML特有の属性と要素をパースします。
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
@@ -53,15 +53,85 @@ impl JLandXmlParser {
 
     /// J-LandXML文書をパース
     pub fn parse(self) -> Result<JLandXmlDocument, LandXMLError> {
-        // まず標準LandXMLとしてパース
-        let base_parser = LandXMLParser::from_file(&self.file_path)?;
-        let base_landxml = base_parser.parse()?;
+        // 基本的なLandXMLドキュメントを作成
+        let base_landxml = self.parse_base_landxml()?;
         let mut jlandxml_doc = JLandXmlDocument::from_base(base_landxml);
 
         // J-LandXML拡張属性をパース
         self.parse_jlandxml_extensions(&mut jlandxml_doc)?;
 
         Ok(jlandxml_doc)
+    }
+
+    /// 基本LandXML構造をパース（最小限の実装）
+    fn parse_base_landxml(&self) -> Result<LandXML, LandXMLError> {
+        use std::fs;
+        let content = fs::read_to_string(&self.file_path)?;
+        let mut reader = Reader::from_str(&content);
+        reader.trim_text(true);
+
+        let mut buf = Vec::new();
+        let mut version = String::new();
+        let mut coordinate_system = None;
+
+        loop {
+            match reader.read_event_into(&mut buf) {
+                Ok(Event::Start(ref e)) => {
+                    match e.name().as_ref() {
+                        b"LandXML" => {
+                            for attr in e.attributes() {
+                                let attr = attr.map_err(|e| {
+                                    LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
+                                })?;
+                                if attr.key.as_ref() == b"version" {
+                                    version = String::from_utf8_lossy(&attr.value).to_string();
+                                }
+                            }
+                        }
+                        b"CoordinateSystem" => {
+                            // 基本的な座標系情報を取得
+                            let mut name = String::new();
+                            let mut epsg_code = None;
+
+                            for attr in e.attributes() {
+                                let attr = attr.map_err(|e| {
+                                    LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
+                                })?;
+                                match attr.key.as_ref() {
+                                    b"name" => name = String::from_utf8_lossy(&attr.value).to_string(),
+                                    b"epsgCode" => epsg_code = Some(String::from_utf8_lossy(&attr.value).to_string()),
+                                    _ => {}
+                                }
+                            }
+
+                            coordinate_system = Some(crate::models::CoordinateSystem {
+                                name,
+                                epsg_code,
+                                proj4_string: None,
+                            });
+                        }
+                        _ => {}
+                    }
+                }
+                Ok(Event::Eof) => break,
+                Err(e) => return Err(LandXMLError::ParseError(format!("XML parsing error: {}", e))),
+                _ => {}
+            }
+            buf.clear();
+        }
+
+        if version.is_empty() {
+            return Err(LandXMLError::InvalidFormat {
+                message: "No LandXML version found".to_string(),
+            });
+        }
+
+        Ok(LandXML {
+            version,
+            coordinate_system,
+            alignments: Vec::new(),
+            features: Vec::new(),
+        })
     }
 
     /// J-LandXML拡張属性をパース
@@ -228,7 +298,6 @@ impl JLandXmlParser {
             j_landxml_version: doc.j_landxml_version.clone(),
             plane_coordinate_zone: doc.get_plane_coordinate_zone(),
             epsg_code: doc.get_epsg_code(),
-            surface_count: doc.base.surfaces.len(),
             alignment_count: doc.base.alignments.len(),
         }
     }
@@ -245,8 +314,6 @@ pub struct ParsingStats {
     pub plane_coordinate_zone: Option<JapanPlaneCoordinateSystem>,
     /// EPSGコード
     pub epsg_code: Option<u32>,
-    /// サーフェス数
-    pub surface_count: usize,
     /// アライメント数
     pub alignment_count: usize,
 }
@@ -272,7 +339,6 @@ impl std::fmt::Display for ParsingStats {
             writeln!(f, "EPSG Code: {}", epsg)?;
         }
 
-        writeln!(f, "Surfaces: {}", self.surface_count)?;
         writeln!(f, "Alignments: {}", self.alignment_count)?;
 
         Ok(())

@@ -345,7 +345,6 @@ mod tests {
         let base_landxml = LandXML {
             version: "1.2".to_string(),
             coordinate_system: None,
-            surfaces: Vec::new(),
             alignments: Vec::new(),
             features: Vec::new(),
         };

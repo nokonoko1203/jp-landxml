@@ -1,15 +1,17 @@
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
+/// LandXMLドキュメントのルート構造体
+/// 今後Alignment中心に拡張予定
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LandXML {
     pub version: String,
     pub coordinate_system: Option<CoordinateSystem>,
-    pub surfaces: Vec<Surface>,
     pub alignments: Vec<Alignment>,
     pub features: Vec<Feature>,
 }
 
+/// 座標系情報（標準LandXML）
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CoordinateSystem {
     pub name: String,
@@ -17,136 +19,35 @@ pub struct CoordinateSystem {
     pub proj4_string: Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Surface {
-    pub name: String,
-    pub surface_type: SurfaceType,
-    pub definition: SurfaceDefinition,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum SurfaceType {
-    ExistingGround,
-    DesignGround,
-    Other(String),
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SurfaceDefinition {
-    pub points: Vec<Point3D>,
-    pub faces: Vec<Face>,
-}
-
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct Point3D {
-    pub x: f64,
-    pub y: f64,
-    pub z: f32,
-    pub id: Option<u32>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Face {
-    pub p1: usize,
-    pub p2: usize,
-    pub p3: usize,
-}
-
-// DEM処理用のTriangle型エイリアス
-pub type Triangle = Face;
-
-impl Triangle {
-    pub fn vertex1(&self) -> usize {
-        self.p1
-    }
-    pub fn vertex2(&self) -> usize {
-        self.p2
-    }
-    pub fn vertex3(&self) -> usize {
-        self.p3
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Alignment {
-    pub name: String,
-    pub coord_geom: CoordGeom,
-    pub profile: Option<Profile>,
-    pub cross_sections: Vec<CrossSection>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CoordGeom {
-    pub elements: Vec<GeometryElement>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum GeometryElement {
-    Line {
-        start: Point2D,
-        end: Point2D,
-        length: f64,
-    },
-    Curve {
-        center: Point2D,
-        radius: f64,
-        start_angle: f64,
-        end_angle: f64,
-        length: f64,
-    },
-    Spiral {
-        start: Point2D,
-        end: Point2D,
-        radius_start: Option<f64>,
-        radius_end: Option<f64>,
-        length: f64,
-        clothoid_param: f64,
-    },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// 2次元座標点
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq)]
 pub struct Point2D {
     pub x: f64,
     pub y: f64,
 }
 
+/// 3次元座標点
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct Point3D {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+}
+
+/// 線形（Alignment）
+/// CoordGeom, Profile, CrossSectionsの詳細はalignmentモジュールで定義
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Profile {
+pub struct Alignment {
     pub name: String,
-    pub elements: Vec<ProfileElement>,
+    pub desc: Option<String>,
+    pub sta_start: Option<f64>,
+    // coord_geom, profile, cross_sectionsは今後alignmentモジュールの型を使用
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ProfileElement {
-    ParaCurve {
-        length: f64,
-        start_grade: f64,
-        end_grade: f64,
-    },
-    CircularCurve {
-        length: f64,
-        radius: f64,
-    },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct CrossSection {
-    pub station: f64,
-    pub left_width: f64,
-    pub right_width: f64,
-    pub superelevation: f64,
-}
-
+/// 汎用Feature要素（プレースホルダー）
+/// 詳細はalignment/feature.rsで定義予定
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Feature {
     pub code: String,
     pub properties: HashMap<String, String>,
-    pub geometry: Option<FeatureGeometry>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum FeatureGeometry {
-    Point(Point3D),
-    Line(Vec<Point3D>),
-    Polygon(Vec<Point3D>),
 }
