@@ -1,6 +1,6 @@
 use jp_landxml::{LandXMLParser, SurfaceType};
-use tempfile::NamedTempFile;
 use std::io::Write;
+use tempfile::NamedTempFile;
 
 #[test]
 fn test_parse_basic_landxml() {
@@ -21,14 +21,16 @@ fn test_parse_basic_landxml() {
 </LandXML>"#;
 
     let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
-    temp_file.write_all(xml_content.as_bytes()).expect("Failed to write to temp file");
-    
+    temp_file
+        .write_all(xml_content.as_bytes())
+        .expect("Failed to write to temp file");
+
     let parser = LandXMLParser::from_file(temp_file.path()).expect("Failed to create parser");
     let landxml = parser.parse().expect("Failed to parse LandXML");
-    
+
     assert_eq!(landxml.version, "1.2");
     assert_eq!(landxml.surfaces.len(), 1);
-    
+
     let surface = &landxml.surfaces[0];
     assert_eq!(surface.name, "TestSurface"); // XMLのname属性から取得
     assert!(matches!(surface.surface_type, SurfaceType::ExistingGround)); // desc="ExistingGround"
@@ -41,11 +43,13 @@ fn test_parse_empty_landxml() {
 </LandXML>"#;
 
     let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
-    temp_file.write_all(xml_content.as_bytes()).expect("Failed to write to temp file");
-    
+    temp_file
+        .write_all(xml_content.as_bytes())
+        .expect("Failed to write to temp file");
+
     let parser = LandXMLParser::from_file(temp_file.path()).expect("Failed to create parser");
     let landxml = parser.parse().expect("Failed to parse LandXML");
-    
+
     assert_eq!(landxml.version, "1.2");
     assert_eq!(landxml.surfaces.len(), 0);
     assert_eq!(landxml.alignments.len(), 0);
@@ -57,11 +61,13 @@ fn test_parse_invalid_xml() {
     let xml_content = "invalid xml content";
 
     let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
-    temp_file.write_all(xml_content.as_bytes()).expect("Failed to write to temp file");
-    
+    temp_file
+        .write_all(xml_content.as_bytes())
+        .expect("Failed to write to temp file");
+
     let parser = LandXMLParser::from_file(temp_file.path()).expect("Failed to create parser");
     let result = parser.parse();
-    
+
     assert!(result.is_err());
 }
 
@@ -76,14 +82,16 @@ fn test_parse_j_landxml_features() {
 </LandXML>"#;
 
     let mut temp_file = NamedTempFile::new().expect("Failed to create temp file");
-    temp_file.write_all(xml_content.as_bytes()).expect("Failed to write to temp file");
-    
+    temp_file
+        .write_all(xml_content.as_bytes())
+        .expect("Failed to write to temp file");
+
     let parser = LandXMLParser::from_file(temp_file.path()).expect("Failed to create parser");
     let landxml = parser.parse().expect("Failed to parse LandXML");
-    
+
     assert_eq!(landxml.version, "1.6");
     assert_eq!(landxml.features.len(), 1);
-    
+
     let feature = &landxml.features[0];
     assert_eq!(feature.code, "DISTANCE_MARK"); // XMLのcode属性から取得
 }

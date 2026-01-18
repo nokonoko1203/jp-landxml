@@ -1,14 +1,13 @@
+use crate::error::LandXMLError;
 /// J-LandXML Ver.1.6 完全対応 座標系定義・変換モジュール
-/// 
+///
 /// 日本の測量法に基づく座標系の完全実装：
 /// - 水平測地原子（JGD2000/JGD2011/TD）
 /// - 鉛直原子（T.P/K.P/S.P/Y.P/A.P/O.P/T.P.W/B.S.L）
 /// - 平面直角座標系（1系～19系）
 /// - T.P基準への高さ系変換（differTP）
-
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use std::fmt;
-use crate::error::LandXMLError;
 
 /// 日本の平面直角座標系（1系～19系）
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
@@ -78,7 +77,7 @@ impl JapanPlaneCoordinateSystem {
             Self::Zone19 => 6687,
         }
     }
-    
+
     /// 系の番号を取得（1～19）
     pub fn zone_number(&self) -> u8 {
         match self {
@@ -103,7 +102,7 @@ impl JapanPlaneCoordinateSystem {
             Self::Zone19 => 19,
         }
     }
-    
+
     /// 適用地域の説明を取得
     pub fn description(&self) -> &'static str {
         match self {
@@ -128,7 +127,7 @@ impl JapanPlaneCoordinateSystem {
             Self::Zone19 => "南鳥島、沖ノ鳥島",
         }
     }
-    
+
     /// 系番号から平面直角座標系を取得
     pub fn from_zone_number(zone: u8) -> Result<Self, LandXMLError> {
         match zone {
@@ -151,26 +150,47 @@ impl JapanPlaneCoordinateSystem {
             17 => Ok(Self::Zone17),
             18 => Ok(Self::Zone18),
             19 => Ok(Self::Zone19),
-            _ => Err(LandXMLError::InvalidCoordinateSystem(
-                format!("Unsupported plane coordinate zone: {}", zone)
-            )),
+            _ => Err(LandXMLError::InvalidCoordinateSystem(format!(
+                "Unsupported plane coordinate zone: {}",
+                zone
+            ))),
         }
     }
-    
+
     /// すべての平面直角座標系を列挙
     pub fn all_zones() -> Vec<Self> {
         vec![
-            Self::Zone1, Self::Zone2, Self::Zone3, Self::Zone4, Self::Zone5,
-            Self::Zone6, Self::Zone7, Self::Zone8, Self::Zone9, Self::Zone10,
-            Self::Zone11, Self::Zone12, Self::Zone13, Self::Zone14, Self::Zone15,
-            Self::Zone16, Self::Zone17, Self::Zone18, Self::Zone19,
+            Self::Zone1,
+            Self::Zone2,
+            Self::Zone3,
+            Self::Zone4,
+            Self::Zone5,
+            Self::Zone6,
+            Self::Zone7,
+            Self::Zone8,
+            Self::Zone9,
+            Self::Zone10,
+            Self::Zone11,
+            Self::Zone12,
+            Self::Zone13,
+            Self::Zone14,
+            Self::Zone15,
+            Self::Zone16,
+            Self::Zone17,
+            Self::Zone18,
+            Self::Zone19,
         ]
     }
 }
 
 impl fmt::Display for JapanPlaneCoordinateSystem {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "平面直角座標系{}系 (EPSG:{})", self.zone_number(), self.epsg_code())
+        write!(
+            f,
+            "平面直角座標系{}系 (EPSG:{})",
+            self.zone_number(),
+            self.epsg_code()
+        )
     }
 }
 
@@ -190,23 +210,24 @@ impl HorizontalDatum {
     pub fn as_str(&self) -> &'static str {
         match self {
             Self::JGD2000 => "JGD2000",
-            Self::JGD2011 => "JGD2011", 
+            Self::JGD2011 => "JGD2011",
             Self::TD => "TD",
         }
     }
-    
+
     /// 文字列から測地原子を解析
     pub fn from_str(s: &str) -> Result<Self, LandXMLError> {
         match s.trim() {
             "JGD2000" => Ok(Self::JGD2000),
             "JGD2011" => Ok(Self::JGD2011),
             "TD" => Ok(Self::TD),
-            _ => Err(LandXMLError::InvalidCoordinateSystem(
-                format!("Unsupported horizontal datum: {}", s)
-            )),
+            _ => Err(LandXMLError::InvalidCoordinateSystem(format!(
+                "Unsupported horizontal datum: {}",
+                s
+            ))),
         }
     }
-    
+
     /// 説明を取得
     pub fn description(&self) -> &'static str {
         match self {
@@ -252,7 +273,7 @@ impl VerticalDatum {
             Self::BSL => "B.S.L",
         }
     }
-    
+
     /// 文字列から鉛直原子を解析
     pub fn from_str(s: &str) -> Result<Self, LandXMLError> {
         match s.trim() {
@@ -264,12 +285,13 @@ impl VerticalDatum {
             "O.P" => Ok(Self::OP),
             "T.P.W" => Ok(Self::TPW),
             "B.S.L" => Ok(Self::BSL),
-            _ => Err(LandXMLError::InvalidCoordinateSystem(
-                format!("Unsupported vertical datum: {}", s)
-            )),
+            _ => Err(LandXMLError::InvalidCoordinateSystem(format!(
+                "Unsupported vertical datum: {}",
+                s
+            ))),
         }
     }
-    
+
     /// T.P基準からの差分（メートル）を取得
     pub fn tp_offset(&self) -> f64 {
         match self {
@@ -283,7 +305,7 @@ impl VerticalDatum {
             Self::BSL => 84.371,
         }
     }
-    
+
     /// 対象河川・水域の説明を取得
     pub fn description(&self) -> &'static str {
         match self {
@@ -297,7 +319,7 @@ impl VerticalDatum {
             Self::BSL => "琵琶湖（Biwa Surface Level）",
         }
     }
-    
+
     /// T.P基準への標高変換
     pub fn to_tp_elevation(&self, raw_elevation: f64) -> f64 {
         raw_elevation + self.tp_offset()
@@ -329,20 +351,24 @@ impl CoordinateSystemMapper {
             None
         }
     }
-    
+
     /// horizontalCoordinateSystemName をパースして平面直角座標系を取得
-    pub fn parse_horizontal_coordinate_system_name(name: &str) -> Result<Option<JapanPlaneCoordinateSystem>, LandXMLError> {
+    pub fn parse_horizontal_coordinate_system_name(
+        name: &str,
+    ) -> Result<Option<JapanPlaneCoordinateSystem>, LandXMLError> {
         use regex::Regex;
-        
+
         // "N(X,Y)" 形式の正規表現（Nは1～19の数字）
         let re = Regex::new(r"^(\d{1,2})\(X,Y\)$")
             .map_err(|e| LandXMLError::ParseError(format!("Regex compilation failed: {}", e)))?;
-        
+
         if let Some(captures) = re.captures(name.trim()) {
             if let Some(zone_str) = captures.get(1) {
-                let zone_num: u8 = zone_str.as_str().parse()
+                let zone_num: u8 = zone_str
+                    .as_str()
+                    .parse()
                     .map_err(|e| LandXMLError::ParseError(format!("Invalid zone number: {}", e)))?;
-                
+
                 // from_zone_numberでエラーが発生した場合（範囲外の系番号）はNoneを返す
                 match JapanPlaneCoordinateSystem::from_zone_number(zone_num) {
                     Ok(zone) => return Ok(Some(zone)),
@@ -350,11 +376,11 @@ impl CoordinateSystemMapper {
                 }
             }
         }
-        
+
         // パターンにマッチしない場合はNone（エラーではない）
         Ok(None)
     }
-    
+
     /// 測地原子と平面直角座標系の整合性をチェック
     pub fn validate_datum_compatibility(
         horizontal_datum: HorizontalDatum,
@@ -372,7 +398,7 @@ impl CoordinateSystemMapper {
             }
         }
     }
-    
+
     /// 高さ系補正が必要かどうかを判定
     pub fn needs_tp_correction(vertical_datum: VerticalDatum) -> bool {
         !matches!(vertical_datum, VerticalDatum::TP)
@@ -391,17 +417,17 @@ impl CoordinateSystemValidator {
         differ_tp: Option<f64>,
     ) -> Result<Vec<ValidationWarning>, LandXMLError> {
         let mut warnings = Vec::new();
-        
+
         // 測地原子と座標系の整合性チェック
         CoordinateSystemMapper::validate_datum_compatibility(horizontal_datum, zone)?;
-        
+
         // differTP の整合性チェック
         if CoordinateSystemMapper::needs_tp_correction(vertical_datum) {
             match differ_tp {
                 Some(provided_diff) => {
                     let expected_diff = vertical_datum.tp_offset();
                     let tolerance = 0.001; // 1mm許容差
-                    
+
                     if (provided_diff - expected_diff).abs() > tolerance {
                         warnings.push(ValidationWarning::DifferTpMismatch {
                             vertical_datum,
@@ -423,12 +449,14 @@ impl CoordinateSystemValidator {
                 warnings.push(ValidationWarning::UnnecessaryDifferTp);
             }
         }
-        
+
         // 旧測地系の使用警告
         if matches!(horizontal_datum, HorizontalDatum::TD) {
-            warnings.push(ValidationWarning::LegacyDatumUsage { datum: horizontal_datum });
+            warnings.push(ValidationWarning::LegacyDatumUsage {
+                datum: horizontal_datum,
+            });
         }
-        
+
         Ok(warnings)
     }
 }
@@ -450,28 +478,45 @@ pub enum ValidationWarning {
     /// T.P基準でdifferTPが設定されている
     UnnecessaryDifferTp,
     /// 旧測地系の使用
-    LegacyDatumUsage {
-        datum: HorizontalDatum,
-    },
+    LegacyDatumUsage { datum: HorizontalDatum },
 }
 
 impl fmt::Display for ValidationWarning {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            ValidationWarning::DifferTpMismatch { vertical_datum, provided, expected } => {
-                write!(f, "differTP mismatch for {}: provided {:.4}m, expected {:.4}m", 
-                       vertical_datum.as_str(), provided, expected)
+            ValidationWarning::DifferTpMismatch {
+                vertical_datum,
+                provided,
+                expected,
+            } => {
+                write!(
+                    f,
+                    "differTP mismatch for {}: provided {:.4}m, expected {:.4}m",
+                    vertical_datum.as_str(),
+                    provided,
+                    expected
+                )
             }
-            ValidationWarning::MissingDifferTp { vertical_datum, expected } => {
-                write!(f, "Missing differTP for {}: should be {:.4}m", 
-                       vertical_datum.as_str(), expected)
+            ValidationWarning::MissingDifferTp {
+                vertical_datum,
+                expected,
+            } => {
+                write!(
+                    f,
+                    "Missing differTP for {}: should be {:.4}m",
+                    vertical_datum.as_str(),
+                    expected
+                )
             }
             ValidationWarning::UnnecessaryDifferTp => {
                 write!(f, "Unnecessary differTP for T.P datum")
             }
             ValidationWarning::LegacyDatumUsage { datum } => {
-                write!(f, "Legacy datum usage: {} is deprecated, consider upgrading to JGD2011", 
-                       datum.as_str())
+                write!(
+                    f,
+                    "Legacy datum usage: {} is deprecated, consider upgrading to JGD2011",
+                    datum.as_str()
+                )
             }
         }
     }
@@ -497,8 +542,14 @@ mod tests {
 
     #[test]
     fn test_from_zone_number() {
-        assert_eq!(JapanPlaneCoordinateSystem::from_zone_number(1).unwrap(), JapanPlaneCoordinateSystem::Zone1);
-        assert_eq!(JapanPlaneCoordinateSystem::from_zone_number(9).unwrap(), JapanPlaneCoordinateSystem::Zone9);
+        assert_eq!(
+            JapanPlaneCoordinateSystem::from_zone_number(1).unwrap(),
+            JapanPlaneCoordinateSystem::Zone1
+        );
+        assert_eq!(
+            JapanPlaneCoordinateSystem::from_zone_number(9).unwrap(),
+            JapanPlaneCoordinateSystem::Zone9
+        );
         assert!(JapanPlaneCoordinateSystem::from_zone_number(20).is_err());
         assert!(JapanPlaneCoordinateSystem::from_zone_number(0).is_err());
     }
@@ -518,7 +569,7 @@ mod tests {
             CoordinateSystemMapper::parse_horizontal_coordinate_system_name("19(X,Y)").unwrap(),
             Some(JapanPlaneCoordinateSystem::Zone19)
         );
-        
+
         // 不正なケース（エラーではなくNone）
         assert_eq!(
             CoordinateSystemMapper::parse_horizontal_coordinate_system_name("20(X,Y)").unwrap(),
@@ -536,8 +587,17 @@ mod tests {
 
     #[test]
     fn test_epsg_from_jlandxml_name() {
-        assert_eq!(CoordinateSystemMapper::get_epsg_from_jlandxml_name("1(X,Y)"), Some(6669));
-        assert_eq!(CoordinateSystemMapper::get_epsg_from_jlandxml_name("9(X,Y)"), Some(6677));
-        assert_eq!(CoordinateSystemMapper::get_epsg_from_jlandxml_name("invalid"), None);
+        assert_eq!(
+            CoordinateSystemMapper::get_epsg_from_jlandxml_name("1(X,Y)"),
+            Some(6669)
+        );
+        assert_eq!(
+            CoordinateSystemMapper::get_epsg_from_jlandxml_name("9(X,Y)"),
+            Some(6677)
+        );
+        assert_eq!(
+            CoordinateSystemMapper::get_epsg_from_jlandxml_name("invalid"),
+            None
+        );
     }
 }

@@ -56,9 +56,15 @@ pub struct Face {
 pub type Triangle = Face;
 
 impl Triangle {
-    pub fn vertex1(&self) -> usize { self.p1 }
-    pub fn vertex2(&self) -> usize { self.p2 }
-    pub fn vertex3(&self) -> usize { self.p3 }
+    pub fn vertex1(&self) -> usize {
+        self.p1
+    }
+    pub fn vertex2(&self) -> usize {
+        self.p2
+    }
+    pub fn vertex3(&self) -> usize {
+        self.p3
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

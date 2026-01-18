@@ -83,6 +83,37 @@ cargo run --features cli -- export-dem examples/sample_landxml.xml -o output/ --
 - 座標値から適切なEPSGコードを自動推定
 - JGD2011基準（EPSG:6669-6687）
 
+## 実装構造
+
+```
+src/
+├── lib.rs                # ライブラリエントリーポイント
+├── parser.rs             # 標準LandXMLパーサー（quick-xml使用）
+├── models.rs             # データ構造（Surface, Alignment, Feature等）
+├── geometry.rs           # 幾何計算（クロソイド曲線、面積計算等）
+├── error.rs              # エラー型定義
+├── export.rs             # JSON出力
+├── dem/                  # DEM（数値標高モデル）生成モジュール
+│   ├── mod.rs            # DEMモジュールエントリーポイント
+│   ├── grid.rs           # グリッドDEM処理
+│   ├── triangulation.rs  # TIN→DEM変換（標高補間）
+│   └── geotiff_writer.rs # GeoTIFF出力（GDAL使用）
+└── jlandxml/             # J-LandXML Ver.1.6 拡張対応モジュール
+    ├── mod.rs            # J-LandXMLモジュールエントリーポイント
+    ├── coordinate_systems.rs # 平面直角座標系1〜19系、測地原子、鉛直原子
+    ├── models.rs         # J-LandXML拡張データモデル
+    └── parser.rs         # J-LandXML専用パーサー
+```
+
+### 主要モジュールの役割
+
+| モジュール | 役割 |
+|-----------|------|
+| `parser` | XMLストリーミング処理、Surface/Alignment/Feature要素のパース |
+| `models` | Point3D, Face, Surface, Alignment等のデータ構造定義 |
+| `dem` | TINデータからグリッドDEMへの変換、GeoTIFF出力 |
+| `jlandxml` | 日本独自拡張（平面直角座標系、高さ基準変換等） |
+
 ## テスト
 
 ```bash
