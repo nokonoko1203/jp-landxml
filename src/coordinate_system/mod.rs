@@ -1,21 +1,27 @@
-/// J-LandXML Ver.1.6 拡張仕様対応モジュール
-///
-/// 標準LandXMLに加えて、日本独自の拡張仕様をサポートします：
-/// - 平面直角座標系1系～19系対応
-/// - horizontalCoordinateSystemName属性処理
-/// - 日本測地系・世界測地系対応
-pub mod coordinate_systems;
-pub mod models;
-pub mod parser;
+//! CoordinateSystem module for J-LandXML parser
+//!
+//! This module handles coordinate system definitions including:
+//! - Standard LandXML coordinate systems
+//! - J-LandXML extensions (Japan Plane Coordinate System 1-19)
+//! - Horizontal/Vertical datum definitions
+//! - Coordinate system validation
 
-pub use coordinate_systems::{
-    CoordinateSystemMapper, CoordinateSystemValidator, HorizontalDatum, JapanPlaneCoordinateSystem,
+pub mod jlandxml;
+pub mod parser;
+pub mod standard;
+
+// 標準LandXML座標系
+pub use standard::CoordinateSystem;
+
+// J-LandXML拡張 - 座標系関連
+pub use jlandxml::{
+    CoordinateSystemInfo, CoordinateSystemMapper, CoordinateSystemValidator, HorizontalDatum,
+    JLandXmlCoordinateSystem, JLandXmlDocument, JLandXmlProperty, JapanPlaneCoordinateSystem,
     ValidationWarning, VerticalDatum,
 };
-pub use models::{
-    CoordinateSystemInfo, JLandXmlCoordinateSystem, JLandXmlDocument, JLandXmlProperty,
-};
-pub use parser::{CoordinateSystemNameParser, JLandXmlParser};
+
+// パーサー
+pub use parser::{CoordinateSystemNameParser, JLandXmlParser, ParsingStats};
 
 use crate::error::LandXMLError;
 

@@ -1,10 +1,13 @@
-use super::coordinate_systems::{CoordinateSystemMapper, JapanPlaneCoordinateSystem};
-use super::models::{JLandXmlCoordinateSystem, JLandXmlDocument};
+//! J-LandXML Ver.1.6 専用パーサー
+//!
+//! J-LandXML特有の属性と要素をパースします。
+
+use super::jlandxml::{
+    CoordinateSystemMapper, JLandXmlCoordinateSystem, JLandXmlDocument, JapanPlaneCoordinateSystem,
+    VerticalDatum,
+};
 use crate::error::LandXMLError;
 use crate::models::LandXML;
-/// J-LandXML Ver.1.6 専用パーサー
-///
-/// J-LandXML特有の属性と要素をパースします。
 use quick_xml::events::Event;
 use quick_xml::Reader;
 
@@ -41,7 +44,6 @@ impl JLandXmlParser {
     /// ファイルから作成
     pub fn from_file<P: AsRef<std::path::Path>>(path: P) -> Result<Self, LandXMLError> {
         let file_path = path.as_ref().to_path_buf();
-        // ファイルの存在を確認
         if !file_path.exists() {
             return Err(LandXMLError::Io(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
@@ -53,13 +55,9 @@ impl JLandXmlParser {
 
     /// J-LandXML文書をパース
     pub fn parse(self) -> Result<JLandXmlDocument, LandXMLError> {
-        // 基本的なLandXMLドキュメントを作成
         let base_landxml = self.parse_base_landxml()?;
         let mut jlandxml_doc = JLandXmlDocument::from_base(base_landxml);
-
-        // J-LandXML拡張属性をパース
         self.parse_jlandxml_extensions(&mut jlandxml_doc)?;
-
         Ok(jlandxml_doc)
     }
 
@@ -76,45 +74,50 @@ impl JLandXmlParser {
 
         loop {
             match reader.read_event_into(&mut buf) {
-                Ok(Event::Start(ref e)) => {
-                    match e.name().as_ref() {
-                        b"LandXML" => {
-                            for attr in e.attributes() {
-                                let attr = attr.map_err(|e| {
-                                    LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
-                                })?;
-                                if attr.key.as_ref() == b"version" {
-                                    version = String::from_utf8_lossy(&attr.value).to_string();
-                                }
+                Ok(Event::Start(ref e)) => match e.name().as_ref() {
+                    b"LandXML" => {
+                        for attr in e.attributes() {
+                            let attr = attr.map_err(|e| {
+                                LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
+                            })?;
+                            if attr.key.as_ref() == b"version" {
+                                version = String::from_utf8_lossy(&attr.value).to_string();
                             }
                         }
-                        b"CoordinateSystem" => {
-                            // 基本的な座標系情報を取得
-                            let mut name = String::new();
-                            let mut epsg_code = None;
+                    }
+                    b"CoordinateSystem" => {
+                        let mut name = String::new();
+                        let mut epsg_code = None;
 
-                            for attr in e.attributes() {
-                                let attr = attr.map_err(|e| {
-                                    LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
-                                })?;
-                                match attr.key.as_ref() {
-                                    b"name" => name = String::from_utf8_lossy(&attr.value).to_string(),
-                                    b"epsgCode" => epsg_code = Some(String::from_utf8_lossy(&attr.value).to_string()),
-                                    _ => {}
+                        for attr in e.attributes() {
+                            let attr = attr.map_err(|e| {
+                                LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
+                            })?;
+                            match attr.key.as_ref() {
+                                b"name" => {
+                                    name = String::from_utf8_lossy(&attr.value).to_string()
                                 }
+                                b"epsgCode" => {
+                                    epsg_code =
+                                        Some(String::from_utf8_lossy(&attr.value).to_string())
+                                }
+                                _ => {}
                             }
+                        }
 
-                            coordinate_system = Some(crate::models::CoordinateSystem {
+                        coordinate_system =
+                            Some(crate::coordinate_system::standard::CoordinateSystem {
                                 name,
                                 epsg_code,
                                 proj4_string: None,
                             });
-                        }
-                        _ => {}
                     }
-                }
+                    _ => {}
+                },
                 Ok(Event::Eof) => break,
-                Err(e) => return Err(LandXMLError::ParseError(format!("XML parsing error: {}", e))),
+                Err(e) => {
+                    return Err(LandXMLError::ParseError(format!("XML parsing error: {}", e)))
+                }
                 _ => {}
             }
             buf.clear();
@@ -147,46 +150,31 @@ impl JLandXmlParser {
 
         loop {
             match reader.read_event_into(&mut buf) {
-                Ok(Event::Start(ref e)) => {
-                    match e.name().as_ref() {
-                        b"CoordinateSystem" => {
-                            in_coordinate_system = true;
-                            // 既存の座標系情報から開始
-                            if let Some(base_cs) = &doc.base.coordinate_system {
-                                current_coordinate_system =
-                                    Some(JLandXmlCoordinateSystem::from_base(base_cs.clone()));
-                            }
-
-                            // J-LandXML拡張属性をパース
-                            self.parse_coordinate_system_attributes(
-                                e,
-                                &mut current_coordinate_system,
-                            )?;
-                        }
-                        b"Project" => {
-                            // Project要素からJ-LandXML識別情報を抽出
-                            self.parse_project_attributes(e, doc)?;
-                        }
-                        _ => {}
-                    }
-                }
-                Ok(Event::End(ref e)) => match e.name().as_ref() {
+                Ok(Event::Start(ref e)) => match e.name().as_ref() {
                     b"CoordinateSystem" => {
-                        if in_coordinate_system {
-                            if let Some(cs) = current_coordinate_system.take() {
-                                doc.coordinate_system = Some(cs);
-                            }
-                            in_coordinate_system = false;
+                        in_coordinate_system = true;
+                        if let Some(base_cs) = &doc.base.coordinate_system {
+                            current_coordinate_system =
+                                Some(JLandXmlCoordinateSystem::from_base(base_cs.clone()));
                         }
+                        self.parse_coordinate_system_attributes(e, &mut current_coordinate_system)?;
+                    }
+                    b"Project" => {
+                        self.parse_project_attributes(e, doc)?;
                     }
                     _ => {}
                 },
+                Ok(Event::End(ref e)) => {
+                    if e.name().as_ref() == b"CoordinateSystem" && in_coordinate_system {
+                        if let Some(cs) = current_coordinate_system.take() {
+                            doc.coordinate_system = Some(cs);
+                        }
+                        in_coordinate_system = false;
+                    }
+                }
                 Ok(Event::Eof) => break,
                 Err(e) => {
-                    return Err(LandXMLError::ParseError(format!(
-                        "XML parsing error: {}",
-                        e
-                    )))
+                    return Err(LandXMLError::ParseError(format!("XML parsing error: {}", e)))
                 }
                 _ => {}
             }
@@ -207,12 +195,10 @@ impl JLandXmlParser {
                 let attr = attr.map_err(|e| {
                     LandXMLError::ParseError(format!("Attribute parsing error: {}", e))
                 })?;
-                let key = std::str::from_utf8(attr.key.as_ref()).map_err(|e| {
-                    LandXMLError::ParseError(format!("UTF-8 conversion error: {}", e))
-                })?;
-                let value = std::str::from_utf8(&attr.value).map_err(|e| {
-                    LandXMLError::ParseError(format!("UTF-8 conversion error: {}", e))
-                })?;
+                let key = std::str::from_utf8(attr.key.as_ref())
+                    .map_err(|e| LandXMLError::ParseError(format!("UTF-8 conversion error: {}", e)))?;
+                let value = std::str::from_utf8(&attr.value)
+                    .map_err(|e| LandXMLError::ParseError(format!("UTF-8 conversion error: {}", e)))?;
 
                 match key {
                     "horizontalCoordinateSystemName" => {
@@ -221,16 +207,14 @@ impl JLandXmlParser {
                             .with_horizontal_coordinate_system_name(value.to_string());
                     }
                     "verticalDatum" => {
-                        if let Ok(vertical_datum) =
-                            super::coordinate_systems::VerticalDatum::from_str(value)
-                        {
+                        if let Ok(vertical_datum) = VerticalDatum::from_str(value) {
                             *cs = cs.clone().with_vertical_datum(vertical_datum);
                         }
                     }
                     "geoidName" => {
                         *cs = cs.clone().with_geoid_name(value.to_string());
                     }
-                    _ => {} // 他の属性は標準LandXMLパーサーが処理
+                    _ => {}
                 }
             }
         }
@@ -243,10 +227,6 @@ impl JLandXmlParser {
         element: &quick_xml::events::BytesStart<'_>,
         doc: &mut JLandXmlDocument,
     ) -> Result<(), LandXMLError> {
-        // Project内のFeature要素を探してJ-LandXML識別プロパティを検索
-        // この処理は簡略化されており、実際にはより詳細なFeature解析が必要
-
-        // ここでは基本的な識別のみ実装
         for attr in element.attributes() {
             let attr = attr
                 .map_err(|e| LandXMLError::ParseError(format!("Attribute parsing error: {}", e)))?;
@@ -255,15 +235,11 @@ impl JLandXmlParser {
             let value = std::str::from_utf8(&attr.value)
                 .map_err(|e| LandXMLError::ParseError(format!("UTF-8 conversion error: {}", e)))?;
 
-            match key {
-                "applicationCriterion" => {
-                    doc.application_criterion = Some(value.to_string());
-                    // Ver.1.6の判定
-                    if value.contains("Ver1.6") || value.contains("1.6") {
-                        doc.j_landxml_version = Some("1.6".to_string());
-                    }
+            if key == "applicationCriterion" {
+                doc.application_criterion = Some(value.to_string());
+                if value.contains("Ver1.6") || value.contains("1.6") {
+                    doc.j_landxml_version = Some("1.6".to_string());
                 }
-                _ => {}
             }
         }
 
@@ -272,9 +248,6 @@ impl JLandXmlParser {
 
     /// J-LandXMLとしての妥当性をチェック
     pub fn validate_j_landxml(&self, doc: &JLandXmlDocument) -> Result<bool, LandXMLError> {
-        // J-LandXMLの基本要件をチェック
-
-        // 1. 座標系チェック
         if let Some(ref cs) = doc.coordinate_system {
             let horizontal_name = &cs.horizontal_coordinate_system_name;
             if !CoordinateSystemNameParser::validate(horizontal_name) {
@@ -282,12 +255,10 @@ impl JLandXmlParser {
             }
         }
 
-        // 2. Ver.1.6識別子チェック
         if doc.j_landxml_version.is_some() || doc.application_criterion.is_some() {
             return Ok(true);
         }
 
-        // 3. J-LandXML拡張属性の存在チェック
         Ok(doc.is_j_landxml())
     }
 
@@ -348,20 +319,18 @@ impl std::fmt::Display for ParsingStats {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::coordinate_system::jlandxml::JLandXmlProperty;
 
     #[test]
     fn test_coordinate_system_name_parser() {
-        // 正常なケース
         assert!(CoordinateSystemNameParser::validate("1(X,Y)"));
         assert!(CoordinateSystemNameParser::validate("9(X,Y)"));
         assert!(CoordinateSystemNameParser::validate("19(X,Y)"));
 
-        // 不正なケース
         assert!(!CoordinateSystemNameParser::validate("20(X,Y)"));
         assert!(!CoordinateSystemNameParser::validate("invalid"));
         assert!(!CoordinateSystemNameParser::validate("1(X,Z)"));
 
-        // パース結果の確認
         let result = CoordinateSystemNameParser::parse("9(X,Y)").unwrap();
         assert_eq!(result, Some(JapanPlaneCoordinateSystem::Zone9));
     }
@@ -378,8 +347,6 @@ mod tests {
 
     #[test]
     fn test_jlandxml_property_creation() {
-        use crate::jlandxml::models::JLandXmlProperty;
-
         let prop = JLandXmlProperty::new("testLabel", "testValue");
         assert_eq!(prop.label, "testLabel");
         assert_eq!(prop.value, "testValue");
