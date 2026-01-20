@@ -23,8 +23,6 @@ target/
 
 *.tif
 *.xyz
-*.xml
 .serena
 .tmp
-spec
 .claude

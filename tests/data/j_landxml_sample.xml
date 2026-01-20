@@ -1,0 +1,281 @@
+<?xml version='1.0' encoding='utf-8'?>
+<LandXML xmlns="http://www.landxml.org/schema/LandXML-1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" date="2023-03-01" time="16:47:45" version="1.2" xsi:schemaLocation="http://www.landxml.org/schema/LandXML-1.2 LandXML-1.2.xsd">
+  <Project name="○○道路設計">
+    <Feature>
+      <Property label="projectPhase" value="詳細"/>
+      <Property label="applicationCriterion" value="MlitLandXmlVer.1.7"/>
+      <Property label="stratumMainData" value="Surface "/>
+    </Feature>
+  </Project>
+  <Application name="○○CAD" version="1.0">
+    <Author createdBy="山田太郎" company="○○設計株式会社"/>
+  </Application>
+  <CoordinateSystem name="CRS1" horizontalDatum="JGD2011" verticalDatum="Y.P" horizontalCoordinateSystemName="8(X,Y)">
+    <Feature>
+      <Property label="differTP" value="-0.8402"/>
+    </Feature>
+  </CoordinateSystem>
+  <Units>
+    <Metric areaUnit="squareMeter" linearUnit="meter" volumeUnit="cubicMeter" temperatureUnit="celsius" pressureUnit="HPA" angularUnit="decimal dd.mm.ss" directionUnit="decimal  dd.mm.ss"/>
+  </Units>
+  <CgPoints name="IntermediatePnts">
+    <CgPoint name="BP (NO.-4-10)" featureRef="0">-5851.24470669 -16562.24159873</CgPoint>
+    <CgPoint name="NO.-4" featureRef="1">-5842.61479868 -16557.18940240</CgPoint>
+    <CgPoint name="NO.-3" featureRef="2">-5825.35498266 -16547.08500975</CgPoint>
+    <Feature name="IntermediatePnts">
+      <Property label="alignmentRefs" value="○○路線"/>
+    </Feature>
+    <Feature name="0">
+      <Property label="sta" value="-90.00000000"/>
+      <Property label="tangentDirectionAngle" value="30.2045"/>
+    </Feature>
+    <Feature name="1">
+      <Property label="sta" value="-80.00000000"/>
+      <Property label="tangentDirectionAngle" value="30.2045"/>
+    </Feature>
+    <Feature name="2">
+      <Property label="sta" value="-60.00000000"/>
+      <Property label="tangentDirectionAngle" value="30.2045"/>
+    </Feature>
+  </CgPoints>
+  <Alignments>
+    <Alignment name="○○路線" length="1085.94618322" staStart="-90.00000000">
+      <StaEquation staBack="289.62528129" staInternal="289.62528129" staAhead="290.00000000"/>
+      <StaEquation staBack="675.88262387" staInternal="675.50790516" staAhead="675.00000000"/>
+      <CoordGeom>
+        <Line length="100.40703773">
+          <Start name="BP">-5851.24470669 -16562.24159873 90.90600001</Start>
+          <End name="KA1-1">-5764.59435677 -16511.51399200 88.79745221</End>
+        </Line>
+        <Spiral length="62.50000000" radiusStart="INF" radiusEnd="250.00000000" rot="ccw" spiType="clothoid">
+          <Start name="KA1-1">-5764.59435677 -16511.51399200 88.79745221</Start>
+          <PI>-5728.60693277 -16490.44591907</PI>
+          <End name="KE1-1">-5709.42743874 -16482.23193203 87.48495221</End>
+          <Feature>
+            <Property label="A" value="125"/>
+          </Feature>
+        </Spiral>
+        <Curve rot="ccw" radius="250.00000000" length="61.91334137">
+          <Start name="KE1-1">-5709.42743874 -16482.23193203 87.48495221</Start>
+          <Center>-5611.00629049 -16712.04332769</Center>
+          <End name="KE1-2">-5650.09106625 -16465.11746776 86.18477205</End>
+        </Curve>
+        <Spiral length="62.50000000" radiusStart="250.00000000" radiusEnd="INF" rot="ccw" spiType="clothoid">
+          <Start name="KE1-2">-5650.09106625 -16465.11746776 86.18477205</Start>
+          <PI>-5629.48324112 -16461.85554847</PI>
+          <End name="KA1-2">-5587.80374761 -16460.52205507 84.87227205</End>
+          <Feature>
+            <Property label="A" value="125"/>
+          </Feature>
+        </Spiral>
+        <Spiral length="37.50000000" radiusStart="INF" radiusEnd="150.00000000" rot="cw" spiType="clothoid">
+          <Start name="KA2-1">-5587.80374761 -16460.52205507 84.87227205</Start>
+          <PI>-5562.79605151 -16459.72195903</PI>
+          <End name="KE2-1">-5550.43135643 -16457.76480745 84.08477205</End>
+          <Feature>
+            <Property label="A" value="75"/>
+          </Feature>
+        </Spiral>
+        <Curve rot="cw" radius="150.00000000" length="17.30490221">
+          <Start name="KE2-1">-5550.43135643 -16457.76480745 84.08477205</Start>
+          <Center>-5573.88222189 -16309.60929150</Center>
+          <End name="KE2-2">-5533.53301832 -16454.08054044 83.72136910</End>
+        </Curve>
+        <Spiral length="37.50000000" radiusStart="150.00000000" radiusEnd="INF" rot="cw" spiType="clothoid">
+          <Start name="KE2-2">-5533.53301832 -16454.08054044 83.72136910</Start>
+          <PI>-5521.47580311 -16450.71309512</PI>
+          <End name="KA2-2">-5498.40465601 -16441.03078189 82.96678125</End>
+          <Feature>
+            <Property label="A" value="75"/>
+          </Feature>
+        </Spiral>
+        <Line length="50.78285427">
+          <Start name="KA2-2">-5498.40465601 -16441.03078189 82.96678125</Start>
+          <End name="KA3-1">-5451.57829053 -16421.37906990 82.10987797</End>
+        </Line>
+        <Spiral length="35.00000000" radiusStart="INF" radiusEnd="140.00000000" rot="ccw" spiType="clothoid">
+          <Start name="KA3-1">-5451.57829053 -16421.37906990 82.10987797</Start>
+          <PI>-5430.04521991 -16412.34224421</PI>
+          <End name="KE3-1">-5418.79181904 -16409.19929524 81.58487797</End>
+          <Feature>
+            <Property label="A" value="70"/>
+          </Feature>
+        </Spiral>
+        <Curve rot="ccw" radius="140.00000000" length="35.78563200">
+          <Start name="KE3-1">-5418.79181904 -16409.19929524 81.58487797</Start>
+          <Center>-5381.13256238 -16544.03912759</Center>
+          <End name="KEE3">-5383.47569462 -16404.05873707 81.04809349</End>
+        </Curve>
+        <Spiral length="35.71428571" radiusStart="140.00000000" radiusEnd="160.00000000" rot="ccw" spiType="clothoid">
+          <Start name="KEE3">-5383.47569462 -16404.05873707 81.04809349</Start>
+          <PI>-5365.93268515 -16403.76508457</PI>
+          <End name="KAE3">-5348.04458999 -16407.81070225 80.51237921</End>
+          <Feature>
+            <Property label="A" value="200"/>
+          </Feature>
+        </Spiral>
+        <Curve rot="ccw" radius="160.00000000" length="97.61279161">
+          <Start name="KAE3">-5348.04458999 -16407.81070225 80.51237921</Start>
+          <Center>-5383.33920738 -16563.86931298</Center>
+          <End name="KE3-2">-5265.00053474 -16456.18478040 79.04818733</End>
+        </Curve>
+        <Spiral length="40.00000000" radiusStart="160.00000000" radiusEnd="INF" rot="ccw" spiType="clothoid">
+          <Start name="KE3-2">-5265.00053474 -16456.18478040 79.04818733</Start>
+          <PI>-5256.01344843 -16466.06103505</PI>
+          <End name="KA3-2">-5240.65245106 -16487.88572551 78.46196574</End>
+          <Feature>
+            <Property label="A" value="80"/>
+          </Feature>
+        </Spiral>
+        <Line length="35.98706028">
+          <Start name="KA3-2">-5240.65245106 -16487.88572551 78.46196574</Start>
+          <End name="KA4-1">-5219.93953632 -16517.31434543 78.07508078</End>
+        </Line>
+        <Spiral length="55.00000000" radiusStart="INF" radiusEnd="220.00000000" rot="cw" spiType="clothoid">
+          <Start name="KA4-1">-5219.93953632 -16517.31434543 78.07508078</Start>
+          <PI>-5198.81816495 -16547.32329483</PI>
+          <End name="KE4-1">-5186.46092126 -16560.90314497 77.67547299</End>
+          <Feature>
+            <Property label="A" value="110"/>
+          </Feature>
+        </Spiral>
+        <Curve rot="cw" radius="220.00000000" length="161.22319820">
+          <Start name="KE4-1">-5186.46092126 -16560.90314497 77.67547299</Start>
+          <Center>-5023.74524638 -16412.83691267</Center>
+          <End name="KE4-2">-5045.63591110 -16631.74510986 76.52134889</End>
+        </Curve>
+        <Spiral length="55.00000000" radiusStart="220.00000000" radiusEnd="INF" rot="cw" spiType="clothoid">
+          <Start name="KE4-2">-5045.63591110 -16631.74510986 76.52134889</Start>
+          <PI>-5027.36637121 -16633.57205091</PI>
+          <End name="KA4-2">-4990.68142341 -16632.64254720 76.12762872</End>
+          <Feature>
+            <Property label="A" value="110"/>
+          </Feature>
+        </Spiral>
+        <Line length="104.21507984">
+          <Start name="KA4-2">-4990.68142341 -16632.64254720 76.12762872</Start>
+          <End name="EP">-4886.49977985 -16630.00284808 75.38160000</End>
+        </Line>
+      </CoordGeom>
+      <AlignPIs>
+        <AlignPI>
+          <PI name="BP">-5851.24470669 -16562.24159873</PI>
+        </AlignPI>
+        <AlignPI>
+          <PI name="IP-1" desc="KA1-1～KA1-2">-5682.67738600 -16463.55744155</PI>
+        </AlignPI>
+        <AlignPI>
+          <PI name="IP-2" desc="KA2-1～KA2-2">-5541.30376621 -16459.03433501</PI>
+        </AlignPI>
+        <AlignPI>
+          <PI name="IP-3" desc="KA3-1～KA3-2">-5324.88491673 -16368.20941498</PI>
+        </AlignPI>
+        <AlignPI>
+          <PI name="IP-4" desc="KA4-1～KA4-2">-5136.17281648 -16636.32893080</PI>
+        </AlignPI>
+        <AlignPI>
+          <PI name="EP">-4886.49977985 -16630.00284808</PI>
+        </AlignPI>
+      </AlignPIs>
+      <Profile>
+        <ProfAlign name="縦断線形 1">
+          <PVI>-90.00000000 90.90600001</PVI>
+          <ParaCurve length="80.000000">300.00000029 82.71600000</ParaCurve>
+          <ParaCurve length="60.000000">600.00000029 78.21600000</ParaCurve>
+          <PVI>995.94618316 75.38160000</PVI>
+        </ProfAlign>
+        <ProfSurf name="○○路線">
+          <PntList2D>-90.00000000 90.96600000 -80.00000000 91.08100000 -73.18900000 91.15900000 -70.19000000 91.19300000 -70.14900000 91.19300000 -70.08700000 91.19300000 -
+70.02900000 91.19300000 -69.32300000 91.20000000 -69.27200000 91.20000000 -68.09100000 91.14700000 -68.00100000 91.14400000 -67.93900000 91.14100000 -67.92800000 91.13900000 -
+60.00000000 91.07600000 -51.68800000 91.00900000 -47.18300000 91.14300000 -40.03500000 91.12400000 -40.00000000 91.12400000 -39.98400000 91.12400000 -34.91200000 91.11000000 -
+34.89500000 91.11000000 -34.86200000 91.11000000 -34.04600000 91.12500000 -34.01100000 91.12500000 -33.98200000 91.12500000 -26.83800000 91.32100000 -26.74700000 91.32300000 -
+26.68500000 91.32500000 -24.05300000 91.40100000 -20.00000000 91.50900000 -15.72900000 91.62400000 -11.72000000 91.73400000 -3.95400000 91.94000000 -1.08000000 92.01300000 -0.73700000
+92.02000000 -0.70200000 92.02000000 -0.66400000 92.02000000 -0.63600000 92.02000000 0.00000000 92.04600000 4.23300000 92.22000000 4.32000000 92.22300000 4.37600000 92.22600000
+5.78900000 92.29800000 10.40700000 92.48200000 14.64500000 92.65000000 20.00000000 92.86400000 24.20600000 93.03200000 30.85300000 93.30200000 37.72100000 93.57800000 38.25700000
+93.60000000 38.30200000 93.60000000 38.35900000 93.60000000 38.40600000 93.60000000 38.93900000 93.61500000 40.00000000 93.64500000 44.12200000 93.76400000 50.16000000 93.93200000
+54.48300000 94.05300000 60.00000000 94.20800000 60.14500000 94.21300000 62.67700000 94.28500000 67.47800000 94.41600000 70.50300000 94.49400000 70.53600000 </PntList2D>
+        </ProfSurf>
+      </Profile>
+      <CrossSects>
+        <CrossSect name="NO.17" sta="339.625281">
+          <CrossSectSurf name="ExistingGround">
+            <PntList2D>-30.00000000 77.86487327 -29.68300000 78.00000000 -28.78800000 78.56400000 -28.11500000 79.00000000 -26.55600000 79.97700000 -26.52100000 80.00000000 -
+26.46200000 80.02900000 -24.23200000 81.00000000 -22.65200000 81.51000000 -21.20100000 82.00000000 -20.20700000 82.35700000 -18.50100000 83.00000000 -18.01500000 83.19200000 -
+16.00800000 84.00000000 -13.62600000 84.92400000 -13.43200000 85.00000000 -13.13800000 85.11600000 -12.20400000 85.46300000 -10.72900000 86.00000000 -9.46500000 86.18800000 -
+5.67200000 86.89500000 -5.50500000 86.89800000 -5.33300000 86.90000000 0.00000000 86.91400000 1.13300000 86.91800000 3.83200000 86.90900000 11.69100000 89.87300000 13.08700000
+90.56900000 14.95000000 90.73700000 14.95000000 90.78600000 14.96900000 90.84600000 15.14700000 90.82200000 15.20300000 90.88700000 15.35400000 90.94900000 15.58300000 91.00000000
+15.58500000 91.00000000 15.58600000 91.00000000 15.58800000 91.00000000 15.60200000 91.00300000 17.54000000 91.17900000 17.74100000 91.20800000 18.12500000 91.21100000 18.60800000
+91.20100000 18.96500000 91.25400000 19.48200000 91.31600000 21.21800000 91.18200000 22.45500000 90.97500000 23.37700000 90.85500000 23.69300000 90.89800000 24.71300000 90.92100000
+25.14500000 90.93500000 25.69000000 90.93000000 29.59200000 91.46200000 30.00000000 91.32180247</PntList2D>
+          </CrossSectSurf>
+          <DesignCrossSectSurf name="Carriageway" desc="道路面" side="left">
+            <CrossSectPnt code="PL-1-Lp1">0.00000000 82.12162605</CrossSectPnt>
+            <CrossSectPnt code="PL-1-Lp2">-3.00000000 82.06162605</CrossSectPnt>
+          </DesignCrossSectSurf>
+        </CrossSect>
+        <CrossSect name="NO.25" sta="499.625281">
+          <CrossSectSurf name="ExistingGround">
+            <PntList2D>-30.00000000 70.90375620 -17.69800000 72.37200000 -17.39300000 72.40700000 -13.03800000 72.92700000 -12.91900000 72.93600000 -12.18800000 73.02300000 -
+10.67900000 73.25800000 -10.64800000 73.26800000 -10.49800000 73.32800000 -10.44000000 73.32800000 -4.89800000 75.90400000 -2.87900000 75.91100000 0.00000000 75.90500000 5.49300000
+75.89400000 9.08400000 77.26100000 9.49800000 77.40000000 10.76600000 77.40000000 20.15000000 77.40000000 22.16100000 77.40000000 24.05700000 77.40000000 24.09300000 77.40000000
+26.48700000 77.40000000 26.51900000 77.40000000 26.55000000 77.40000000 28.33300000 77.40000000 30.00000000 77.39278936</PntList2D>
+          </CrossSectSurf>
+          <CrossSectSurf name="SoilLine-1">
+            <Feature name="material">
+              <Property label="upper" value="現況地形"/>
+              <Property label="lower" value="砂質土"/>
+            </Feature>
+            <PntList2D>-30.00000000 70.90375620 -17.69800000 72.37200000 -17.39300000 72.40700000 -13.03800000 72.92700000 -12.91900000 72.93600000 -12.18800000 73.02300000 -
+10.67900000 73.25800000 -10.64800000 73.26800000 -10.49800000 73.32800000 -10.44000000 73.32800000 -4.89800000 75.90400000 -2.87900000 75.91100000 0.00000000 75.90500000 5.49300000
+75.89400000 9.08400000 77.26100000 9.49800000 77.40000000 10.76600000 77.40000000 20.15000000 77.40000000 22.16100000 77.40000000 24.05700000 77.40000000 24.09300000 77.40000000
+26.48700000 77.40000000 26.51900000 77.40000000 26.55000000 77.40000000 28.33300000 77.40000000 30.00000000 77.39278936</PntList2D>
+          </CrossSectSurf>
+          <CrossSectSurf name="SoilLine-2">
+            <Feature name="material">
+              <Property label="upper" value="砂質土"/>
+              <Property label="lower" value="粘性土"/>
+            </Feature>
+            <PntList2D>-30.00000000 70.40375620 -17.69800000 71.97200000 -17.39300000 72.00700000 -13.03800000 72.52700000 -12.91900000 72.53600000 -
+12.18800000 72.62300000 -10.67900000 72.85800000 -10.64800000 72.86800000 -10.49800000 72.92800000 -10.44000000 72.92800000 -4.89800000 75.50400000 -2.87900000 75.41100000 0.00000000
+75.50500000 5.49300000 75.49400000 9.08400000 76.86100000 9.49800000 77.00000000 10.76600000 77.00000000 20.15000000 77.00000000 22.16100000 77.00000000 24.05700000 77.00000000
+24.09300000 77.00000000 26.48700000 77.00000000 26.51900000 77.00000000 26.55000000 77.00000000 28.33300000 77.00000000 30.00000000 76.99278936</PntList2D>
+          </CrossSectSurf>
+        </CrossSect>
+        <Feature>
+          <Property label="profAlignRefs" value="縦断線形 1"/>
+          <Property label="projectPhase" value="詳細"/>
+        </Feature>
+      </CrossSects>
+      <Feature name="Horizontal">
+        <Property label="method" value="IP 法"/>
+      </Feature>
+      <Feature name="Interval">
+        <Property label="main" value="20.00000000"/>
+      </Feature>
+    </Alignment>
+    <Feature>
+      <Property label="designGmType" value="道路"/>
+      <Property label="classification" value="第 3 種第 2 級"/>
+    </Feature>
+  </Alignments>
+  <Roadways>
+    <Roadway name="設計条件" alignmentRefs="○○路線">
+      <Speeds>
+        <DesignSpeed speed="40"/>
+      </Speeds>
+    </Roadway>
+  </Roadways>
+  <Surfaces name="○○地形">
+    <Surface name="○○地形 1" desc="ExistingGround">
+      <Definition surfType="TIN">
+        <Pnts>
+          <P id="1">-7191.75012378 -16159.41180910 105.27000000</P>
+          <P id="2">-7191.74160310 -16164.60721432 105.20000000</P>
+        </Pnts>
+        <Faces>
+          <F>673 726 727</F>
+        </Faces>
+      </Definition>
+    </Surface>
+  </Surfaces>
+</LandXML>
